@@ -1,0 +1,15 @@
+{
+    "A new verification link has been sent to the email address you provided during registration.": "Пайванди нави тасдиқи email ба суроғае, ки ҳангоми бақайдгирӣ нишон додед, фиристода шуд.",
+    "Confirm": "Тасдиқ кардан",
+    "Confirm Password": "Тасдиқи рамз",
+    "Email": "Email",
+    "Email Password Reset Link": "Фиристодани пайванди барқарорсозии рамз",
+    "Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.": "Рамзро фаромӯш кардед? Мушкил нест. Суроғаи email-и худро нишон диҳед ва мо пайванди барқарорсозии рамзро мефиристем.",
+    "Log Out": "Баромадан",
+    "Name": "Ном",
+    "Password": "Рамз",
+    "Resend Verification Email": "Фиристодани email-и тасдиқ дубора",
+    "Reset Password": "Иваз кардани рамз",
+    "Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn't receive the email, we will gladly send you another.": "Ташаккур барои бақайдгирӣ! Пеш аз оғоз, email-и худро тавассути пайванде, ки ҳоло фиристодем, тасдиқ кунед. Агар нома нарасида бошад, мо онро дубора мефиристем.",
+    "This is a secure area of the application. Please confirm your password before continuing.": "Ин қисми ҳифзшудаи барнома аст. Пеш аз идома рамзи худро тасдиқ кунед."
+}
