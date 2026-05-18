@@ -25,6 +25,18 @@
   --accent-color: #4154f1; /* Accent color that represents your brand on the website. It's used for buttons, links, and other elements that need to stand out */
   --surface-color: #ffffff; /* The surface color is used as a background of boxed elements within sections, such as cards, icon boxes, or other elements that require a visual separation from the global background. */
   --contrast-color: #ffffff; /* Contrast color for text, ensuring readability against backgrounds of accent, heading, or default colors. */
+  
+  /* Color Variants for Compatibility */
+  --accent-darker-25: #3441d1;
+  --accent-darker-15: #3549e0;
+  --accent-lighter-90: #f1f4ff;
+  --accent-lighter-97: #f8faff;
+  --accent-lighter-85: #e6ecff;
+  --accent-darker-20: #3345eb;
+  --default-lighter-90: #dcdcdc;
+  --default-lighter-95: #f0f0f0;
+  --default-darker-20: #727272;
+  --default-darker-70: #b8b8b8;
 }
 
 /* Nav Menu Colors - The following color variables are used specifically for the navigation menu. They are separate from the global colors to allow for more customization options */
@@ -73,7 +85,7 @@ a {
 }
 
 a:hover {
-  color: color-mix(in srgb, var(--accent-color), transparent 25%);
+  color: var(--accent-darker-25);
   text-decoration: none;
 }
 
@@ -181,7 +193,7 @@ h6 {
 .header .btn-getstarted:hover,
 .header .btn-getstarted:focus:hover {
   color: var(--contrast-color);
-  background: color-mix(in srgb, var(--accent-color), transparent 15%);
+  background: var(--accent-darker-15);
 }
 
 @media (max-width: 1200px) {
@@ -383,7 +395,7 @@ h6 {
     justify-content: center;
     border-radius: 50%;
     transition: 0.3s;
-    background-color: color-mix(in srgb, var(--accent-color), transparent 90%);
+    background-color: var(--accent-lighter-90);
   }
 
   .navmenu a i:hover,
@@ -412,7 +424,7 @@ h6 {
     padding: 10px 0;
     margin: 10px 20px;
     background-color: var(--nav-dropdown-background-color);
-    border: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+    border: 1px solid var(--default-lighter-90);
     box-shadow: none;
     transition: all 0.5s ease-in-out;
   }
@@ -511,7 +523,7 @@ h6 {
     padding: 10px 0;
     margin: 10px 20px;
     background-color: var(--nav-dropdown-background-color);
-    border: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+    border: 1px solid var(--default-lighter-90);
     box-shadow: none;
     transition: all 0.5s ease-in-out;
   }
@@ -538,9 +550,9 @@ h6 {
 }
 
 .footer .footer-newsletter {
-  background-color: color-mix(in srgb, var(--accent-color), transparent 97%);
-  border-top: 1px solid color-mix(in srgb, var(--accent-color), transparent 85%);
-  border-bottom: 1px solid color-mix(in srgb, var(--accent-color), transparent 85%);
+  background-color: var(--accent-lighter-97);
+  border-top: 1px solid var(--accent-lighter-85);
+  border-bottom: 1px solid var(--accent-lighter-85);
   padding: 50px 0;
 }
 
@@ -553,8 +565,8 @@ h6 {
   margin-bottom: 15px;
   padding: 6px 8px;
   position: relative;
-  background-color: color-mix(in srgb, var(--background-color), transparent 50%);
-  border: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--default-lighter-90);
   box-shadow: 0px 2px 25px rgba(0, 0, 0, 0.1);
   display: flex;
   transition: 0.3s;
@@ -569,7 +581,7 @@ h6 {
   border: 0;
   padding: 4px;
   width: 100%;
-  background-color: color-mix(in srgb, var(--background-color), transparent 50%);
+  background-color: rgba(255, 255, 255, 0.5);
   color: var(--default-color);
 }
 
@@ -589,7 +601,7 @@ h6 {
 }
 
 .footer .footer-newsletter .newsletter-form input[type=submit]:hover {
-  background: color-mix(in srgb, var(--accent-color), transparent 20%);
+  background: var(--accent-darker-20);
 }
 
 .footer .footer-top {
@@ -603,8 +615,8 @@ h6 {
   width: 40px;
   height: 40px;
   border-radius: 4px;
-  background-color: color-mix(in srgb, var(--accent-color), transparent 97%);
-  border: 1px solid color-mix(in srgb, var(--accent-color), transparent 85%);
+  background-color: var(--accent-lighter-97);
+  border: 1px solid var(--accent-lighter-85);
   font-size: 16px;
   color: var(--accent-color);
   margin-right: 10px;
@@ -652,7 +664,7 @@ h6 {
 
 .footer .footer-links ul a {
   display: inline-block;
-  color: color-mix(in srgb, var(--default-color), transparent 20%);
+  color: var(--default-darker-20);
   line-height: 1;
 }
 
@@ -674,7 +686,7 @@ h6 {
 .footer .copyright {
   padding-top: 25px;
   padding-bottom: 25px;
-  border-top: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+  border-top: 1px solid var(--default-lighter-90);
 }
 
 .footer .copyright p {
@@ -710,7 +722,7 @@ h6 {
 }
 
 .scroll-top:hover {
-  background-color: color-mix(in srgb, var(--accent-color), transparent 20%);
+  background-color: var(--accent-darker-20);
   color: var(--contrast-color);
 }
 
@@ -739,7 +751,7 @@ h6 {
 
 .page-title .heading {
   padding: 80px 0;
-  border-top: 1px solid color-mix(in srgb, var(--default-color), transparent 90%);
+  border-top: 1px solid var(--default-lighter-90);
 }
 
 .page-title .heading h1 {
@@ -748,7 +760,7 @@ h6 {
 }
 
 .page-title nav {
-  background-color: color-mix(in srgb, var(--default-color), transparent 95%);
+  background-color: var(--default-lighter-95);
   padding: 20px 0;
 }
 
@@ -769,7 +781,7 @@ h6 {
   content: "/";
   display: inline-block;
   padding-right: 10px;
-  color: color-mix(in srgb, var(--default-color), transparent 70%);
+  color: var(--default-darker-70);
 }
 
 /*--------------------------------------------------------------
@@ -807,7 +819,7 @@ section,
   font-weight: 700;
   padding: 8px 20px;
   margin: 0;
-  background: color-mix(in srgb, var(--accent-color), transparent 90%);
+  background: var(--accent-lighter-90);
   color: var(--accent-color);
   display: inline-block;
   text-transform: uppercase;

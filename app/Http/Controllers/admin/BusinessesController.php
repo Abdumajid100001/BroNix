@@ -14,11 +14,8 @@ class BusinessesController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-
-        // 🔒 только свои бизнесы
         $businesses = Business::with('type', 'owner', 'schedules', 'services')
-            ->where('user_id', $user->id)
+            ->latest()
             ->get();
 
         return view('admin.businesses.index', compact('businesses'));
@@ -87,11 +84,6 @@ class BusinessesController extends Controller
 
     public function edit(Business $business)
     {
-        // 🔒 только владелец
-        if ($business->user_id !== auth()->id()) {
-            abort(403);
-        }
-
         $types = BusinessesTypes::query()->orderBy('name')->get();
         $business->load('schedules', 'services');
 
@@ -100,11 +92,6 @@ class BusinessesController extends Controller
 
     public function update(Request $request, Business $business)
     {
-        // 🔒 только владелец
-        if ($business->user_id !== auth()->id()) {
-            abort(403);
-        }
-
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -151,11 +138,6 @@ class BusinessesController extends Controller
 
     public function destroy(Business $business)
     {
-        // 🔒 только владелец
-        if ($business->user_id !== auth()->id()) {
-            abort(403);
-        }
-
         if ($business->image) {
             Storage::disk('public')->delete($business->image);
         }
@@ -170,11 +152,6 @@ class BusinessesController extends Controller
 
     public function show(Business $business)
     {
-        // 🔒 только владелец
-        if ($business->user_id !== auth()->id()) {
-            abort(403);
-        }
-
         $business->load('type', 'owner', 'schedules', 'services');
 
         return view('admin.businesses.show', compact('business'));

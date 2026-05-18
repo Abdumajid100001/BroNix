@@ -11,19 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('businesses', 'businesses_type_id')) {
+        if (!Schema::hasColumn('businesses', 'business_type_id')) {
             Schema::table('businesses', function (Blueprint $table) {
-                $table->foreignId('businesses_type_id')
+                $table->foreignId('business_type_id')
                     ->nullable()
                     ->after('phone')
-                    ->constrained('businesses_types')
+                    ->constrained('business_types')
                     ->nullOnDelete();
             });
         }
 
         if (!Schema::hasColumn('businesses', 'image')) {
             Schema::table('businesses', function (Blueprint $table) {
-                $table->string('image')->nullable()->after('businesses_type_id');
+                $table->string('image')->nullable()->after('business_type_id');
             });
         }
     }

@@ -13,7 +13,7 @@
         </div>
 
         <!-- Баланс -->
-        <div class="card text-white mb-4" style="background: linear-gradient(135deg, #4e73df, #1cc88a); border-radius: 15px;">
+        <div class="card text-white mb-4 bnx-wallet-card">
             <div class="card-body">
                 <h6 class="opacity-75">{{ __('Текущий баланс') }}</h6>
                 <h2 class="fw-bold">

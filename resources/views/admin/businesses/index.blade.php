@@ -6,7 +6,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div>
                 <h2 class="fw-bold mb-1">{{ __('Бизнесы') }}</h2>
-                <small class="text-muted">{{ __('Каталог ваших бизнесов') }}</small>
+                <small class="text-muted">{{ __('Каталог всех бизнесов на платформе') }}</small>
             </div>
             <a href="{{ route('admin.businesses.create') }}" class="btn btn-primary shadow-sm">+ {{ __('Добавить') }}</a>
         </div>
@@ -101,6 +101,8 @@
                                 </p>
 
                                 <div class="small text-muted mb-3">
+                                    <div class="mb-1"><strong>{{ __('Владелец') }}:</strong> {{ $business->owner?->name ?? __('Не указан') }}</div>
+                                    <div class="mb-1"><strong>{{ __('Email владельца') }}:</strong> {{ $business->owner?->email ?? '-' }}</div>
                                     <div class="mb-1"><strong>{{ __('Адрес') }}:</strong> {{ $business->address ?? '-' }}</div>
                                     <div class="mb-1"><strong>{{ __('Телефон') }}:</strong> {{ $business->phone ?? '-' }}</div>
                                     <div class="mb-1"><strong>{{ __('Время работы') }}:</strong> {{ $workTimeLabel ?? __('Не указано') }}</div>

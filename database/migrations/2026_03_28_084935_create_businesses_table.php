@@ -14,10 +14,12 @@ return new class extends Migration
         Schema::create('businesses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('business_type_id')->constrained('business_types')->cascadeOnDelete();
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
+            $table->enum('status', ['pending ', 'confirmed ','rejected '])->default('pending ');
             $table->timestamps();
         });
     }

@@ -1,37 +1,22 @@
+@php
+    $pageHeading = trim($__env->yieldContent('page_title', $__env->yieldContent('title')));
+    $hasPageHeader = $pageHeading !== '' || trim($__env->yieldContent('header')) !== '';
+@endphp
 
-<!-- ============================================================== -->
-<!-- Start Page Content here -->
-<!-- ============================================================== -->
+<main class="content-page">
+    <div class="admin-content-shell">
+        @if ($hasPageHeader)
+            <div class="admin-page-header">
+                @if ($pageHeading !== '')
+                    <h1 class="admin-page-title">{{ $pageHeading }}</h1>
+                @endif
 
-<div class="content-page">
-    <div class="content">
-
-        <!-- Start Content-->
-        <div class="container-fluid">
-            <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
-                <div class="flex-grow-1">
-                    <h4 class="fs-18 fw-semibold m-0">@yield('page_title', __('Админ-панель'))</h4>
+                <div class="admin-page-subtitle">
                     @yield('header')
-                    @yield('content')
                 </div>
             </div>
+        @endif
 
-        </div> <!-- container-fluid -->
-    </div> <!-- content -->
-
-    <!-- Footer Start -->
-    <footer class="footer">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col fs-13 text-muted text-center">
-                    &copy; <script>document.write(new Date().getFullYear())</script> BroNix
-                </div>
-            </div>
-        </div>
-    </footer>
-    <!-- end Footer -->
-
-</div>
-<!-- ============================================================== -->
-<!-- End Page content -->
-<!-- ============================================================== -->
+        @yield('content')
+    </div>
+</main>

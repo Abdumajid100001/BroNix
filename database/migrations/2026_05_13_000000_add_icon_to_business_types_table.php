@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('businesses_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->timestamps();
+        Schema::table('business_types', function (Blueprint $table) {
+            $table->string('icon')->nullable()->after('name');
+            $table->string('color')->nullable()->after('icon');
         });
     }
 
@@ -23,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('businesses_type');
+        Schema::table('businesses_types', function (Blueprint $table) {
+            $table->dropColumn(['icon', 'color']);
+        });
     }
 };

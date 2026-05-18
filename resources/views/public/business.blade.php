@@ -4,111 +4,183 @@
     $daysMap = trans('messages.days');
 @endphp
 
-<main class="main">
-    <section class="section" style="padding-top: 140px;">
-        <div class="container">
-            <div class="row justify-content-center text-center mb-5">
-                <div class="col-lg-8">
-                    <h1 class="mb-3">{{ __('messages.business_page.title') }}</h1>
-                    <p class="mb-0">{{ __('messages.business_page.description') }}</p>
-                </div>
-            </div>
+<style>
+    .schedule-box {
+        background: #f8f9ff;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid #eef2ff;
+    }
 
-            @if($businesses->isEmpty())
-                <div class="row justify-content-center">
-                    <div class="col-lg-8">
-                        <div class="card border-0 shadow-sm rounded-4">
-                            <div class="card-body text-center py-5">
-                                <h3 class="h4 mb-3">{{ __('messages.business_page.empty_title') }}</h3>
-                                <p class="text-muted mb-4">{{ __('messages.business_page.empty_description') }}</p>
-                                <a href="{{ route('home') }}" class="btn btn-primary">{{ __('messages.common.back_home') }}</a>
+    .status { font-weight:600; font-size:13px; }
+    .status.open { color:#16a34a; }
+    .status.closed { color:#dc2626; }
+
+    .time { font-weight:600; font-size:13px; }
+
+    .days {
+        display:flex;
+        flex-wrap:wrap;
+        gap:6px;
+        margin-top:6px;
+    }
+
+    .days span {
+        background:#eef2ff;
+        padding:4px 8px;
+        border-radius:8px;
+        font-size:11px;
+    }
+
+    /* услуги */
+    .services-box {
+        background:#fff;
+        border:1px solid #eef2ff;
+        border-radius:14px;
+        padding:12px;
+    }
+
+    .services-title {
+        font-weight:600;
+        font-size:13px;
+        margin-bottom:8px;
+    }
+
+    .service-item {
+        display:flex;
+        justify-content:space-between;
+        font-size:13px;
+    }
+
+    .service-meta {
+        color:#6b7280;
+        font-size:12px;
+    }
+</style>
+
+<main class="main">
+    <section class="section bnx-booking-section">
+        <div class="container">
+
+            <div class="row g-4">
+                @foreach($businesses as $business)
+
+                    @php
+                        $daysOrder = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+                        $schedules = $business->schedules->keyBy('day_of_week');
+
+                        $workingDays = collect($daysOrder)->map(function($day) use ($schedules,$daysMap){
+                            $row = $schedules->get($day);
+                            if(!$row || $row->is_day_off) return null;
+
+                            $start = substr($row->start_time,0,5);
+                            $end = substr($row->end_time,0,5);
+
+                            return [
+                                'day'=>$daysMap[$day] ?? $day,
+                                'time'=>"$start - $end"
+                            ];
+                        })->filter()->values();
+
+                        $workTime = $workingDays->pluck('time')->unique()->implode(', ');
+
+                        $nowDay = now()->format('l');
+                        $nowTime = now()->format('H:i');
+
+                        $today = $schedules->get($nowDay);
+
+                        $isOpen = false;
+                        if($today && !$today->is_day_off){
+                            $start = substr($today->start_time,0,5);
+                            $end = substr($today->end_time,0,5);
+                            $isOpen = $nowTime >= $start && $nowTime <= $end;
+                        }
+                    @endphp
+
+                    <div class="col-md-6 col-xl-4">
+                        <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden">
+
+                            <div class="ratio ratio-16x9 bg-light">
+                                @if($business->image)
+                                    <img src="{{ asset('storage/'.$business->image) }}" class="bnx-business-image">
+                                @endif
+                            </div>
+
+                            <div class="card-body d-flex flex-column">
+
+                                <div class="d-flex justify-content-between mb-2">
+                                    <h5>{{ $business->name }}</h5>
+                                    <span class="badge bg-primary-subtle text-primary">
+{{ $business->type->name ?? '-' }}
+</span>
+                                </div>
+
+                                <p class="text-muted small">
+                                    {{ Str::limit($business->description,100) }}
+                                </p>
+
+                                <div class="small text-muted mb-3">
+                                    <div>📍 {{ $business->address }}</div>
+                                    <div>📞 {{ $business->phone }}</div>
+                                </div>
+
+                                {{-- ГРАФИК --}}
+                                <div class="schedule-box mb-3">
+                                    <div class="d-flex justify-content-between">
+<span class="status {{ $isOpen ? 'open':'closed' }}">
+{{ $isOpen ? '🟢 Открыто':'🔴 Закрыто' }}
+</span>
+
+                                        <span class="time">{{ $workTime }}</span>
+                                    </div>
+
+                                    <div class="days">
+                                        @foreach($workingDays as $d)
+                                            <span>{{ $d['day'] }}</span>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                {{-- УСЛУГИ ПОСЛЕ ГРАФИКА --}}
+                                @if($business->services->isNotEmpty())
+                                    <div class="services-box mb-3">
+                                        <div class="services-title">💼 Услуги</div>
+
+                                        @foreach($business->services->take(3) as $service)
+                                            @php
+                                                $duration = preg_replace('/[^0-9]/', '', $service->duration);
+                                            @endphp
+
+                                            <div class="service-item">
+                                                <span>{{ $service->name }}</span>
+
+                                                <span class="service-meta">
+{{ $service->price }} сомон
+@if($duration) • {{ $duration }} минут @endif
+</span>
+                                            </div>
+                                        @endforeach
+
+                                        @if($business->services->count() > 3)
+                                            <div class="service-meta mt-1">
+                                                + ещё {{ $business->services->count() - 3 }}
+                                            </div>
+                                        @endif
+
+                                    </div>
+                                @endif
+
+                                <a href="{{ route('booking.page',$business->id) }}" class="btn btn-primary mt-auto">
+                                    Перейти к бронированию
+                                </a>
+
                             </div>
                         </div>
                     </div>
-                </div>
-            @else
-                <div class="row g-4">
-                    @foreach($businesses as $business)
-                        @php
-                            $daysOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                            $schedulesByDay = $business->schedules->keyBy(fn ($item) => strtolower((string) $item->day_of_week));
-                            $workingDays = collect($daysOrder)->map(function ($dayKey) use ($schedulesByDay, $daysMap) {
-                                $row = $schedulesByDay->get(strtolower($dayKey));
 
-                                if (! $row || $row->is_day_off) {
-                                    return null;
-                                }
+                @endforeach
+            </div>
 
-                                $start = $row->start_time ? \Illuminate\Support\Str::substr($row->start_time, 0, 5) : null;
-                                $end = $row->end_time ? \Illuminate\Support\Str::substr($row->end_time, 0, 5) : null;
-                                $hasRealTime = $start && $end && ! ($start === '00:00' && $end === '00:00');
-
-                                if (! $hasRealTime) {
-                                    return null;
-                                }
-
-                                return [
-                                    'day' => $daysMap[$dayKey] ?? $dayKey,
-                                    'time' => $start . ' - ' . $end,
-                                ];
-                            })->filter()->values();
-                            $workTimeLabel = $workingDays->pluck('time')->unique()->implode(', ');
-                        @endphp
-
-                        <div class="col-12 col-md-6 col-xl-4" id="business-{{ $business->id }}">
-                            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
-                                <div class="ratio ratio-16x9 bg-light">
-                                    @if($business->image)
-                                        <img
-                                            src="{{ asset('storage/' . $business->image) }}"
-                                            alt="{{ $business->name }}"
-                                            style="width: 100%; height: 100%; object-fit: cover;"
-                                        >
-                                    @else
-                                        <div class="d-flex align-items-center justify-content-center text-muted fw-semibold">
-                                            {{ __('messages.common.no_photo') }}
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <div class="card-body d-flex flex-column">
-                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
-                                        <h3 class="h5 mb-0">{{ $business->name }}</h3>
-                                        <span class="badge bg-primary-subtle text-primary">
-                                            {{ $business->type->name ?? __('messages.common.uncategorized') }}
-                                        </span>
-                                    </div>
-
-                                    <p class="text-muted mb-3">
-                                        {{ \Illuminate\Support\Str::limit($business->description ?: __('messages.business_page.description_placeholder'), 120) }}
-                                    </p>
-
-                                    <div class="small text-muted mb-4">
-                                        <div class="mb-2"><strong>{{ __('messages.common.address') }}:</strong> {{ $business->address ?: __('messages.common.not_specified') }}</div>
-                                        <div class="mb-2"><strong>{{ __('messages.common.phone') }}:</strong> {{ $business->phone ?: __('messages.common.not_specified') }}</div>
-                                        <div class="mb-2"><strong>{{ __('messages.common.working_hours') }}:</strong> {{ $workTimeLabel !== '' ? $workTimeLabel : __('messages.common.not_specified_neuter') }}</div>
-                                        <div><strong>{{ __('messages.common.working_days') }}:</strong> {{ $workingDays->isNotEmpty() ? $workingDays->pluck('day')->implode(', ') : __('messages.common.not_specified_plural') }}</div>
-                                    </div>
-
-                                    @if($workingDays->isNotEmpty())
-                                        <div class="d-flex flex-wrap gap-2 mb-4">
-                                            @foreach($workingDays as $item)
-                                                <span class="small rounded-pill bg-light border px-2 py-1 text-dark">
-                                                    {{ $item['day'] }} {{ $item['time'] }}
-                                                </span>
-                                            @endforeach
-                                        </div>
-                                    @endif
-
-                                    <div class="mt-auto">
-                                        <a href="{{ route('booking.page', ['business' => $business->id]) }}" class="btn btn-primary w-100">{{ __('messages.business_page.go_to_booking') }}</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
         </div>
     </section>
 </main>

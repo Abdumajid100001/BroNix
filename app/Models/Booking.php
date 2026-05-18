@@ -3,6 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+use App\Models\Business;
+use App\Models\Service;
+use App\Models\Payments;
 
 class Booking extends Model
 {
@@ -14,7 +18,10 @@ class Booking extends Model
         'start_time',
         'end_time',
         'status',
-        'comment',
+    ];
+
+    protected $casts = [
+        'booking_date' => 'date',
     ];
 
     public function user()

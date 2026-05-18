@@ -9,17 +9,22 @@ use Illuminate\Contracts\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(): View
+    /**
+     * Отображение главной страницы панели владельца.
+     */
+    public function index(): View
     {
         $user = auth()->user();
         $businessIds = $user->businesses()->pluck('id');
 
+        // Последние 8 бронирований для заведений владельца
         $recentBookings = Booking::with(['business.type', 'service', 'user', 'payment'])
             ->whereIn('business_id', $businessIds)
             ->latest()
             ->take(8)
             ->get();
 
+        // Последние 8 платежей
         $recentPayments = Payments::with(['booking.business', 'booking.service', 'user'])
             ->whereHas('booking', function ($query) use ($businessIds) {
                 $query->whereIn('business_id', $businessIds);
@@ -28,11 +33,12 @@ class DashboardController extends Controller
             ->take(8)
             ->get();
 
+        // Сбор статистики для дашборда
         $stats = [
-            'businesses' => $user->businesses()->count(),
-            'bookings' => Booking::whereIn('business_id', $businessIds)->count(),
+            'businesses'       => $user->businesses()->count(),
+            'bookings'         => Booking::whereIn('business_id', $businessIds)->count(),
             'pending_bookings' => Booking::whereIn('business_id', $businessIds)->where('status', 'pending')->count(),
-            'paid_total' => (float) Payments::whereHas('booking', function ($query) use ($businessIds) {
+            'paid_total'       => (float) Payments::whereHas('booking', function ($query) use ($businessIds) {
                 $query->whereIn('business_id', $businessIds);
             })->where('status', 'paid')->sum('amount'),
         ];

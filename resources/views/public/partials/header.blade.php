@@ -55,7 +55,6 @@
                     <li><a href="{{ $homeSectionLink('hero') }}" class="{{ request()->routeIs('home') ? 'active' : '' }}">{{ __('messages.common.home') }}</a></li>
                     <li><a href="{{ route('business.page') }}" class="{{ request()->routeIs('business.page') ? 'active' : '' }}">{{ __('messages.common.businesses') }}</a></li>
                     <li><a href="{{ route('booking.page') }}" class="{{ request()->routeIs('booking.page', 'booking.payment') ? 'active' : '' }}">{{ __('messages.common.booking') }}</a></li>
-                    <li><a href="{{ $homeSectionLink('leaders') }}">{{ __('messages.header.leaders') }}</a></li>
                     <li><a href="{{ $homeSectionLink('contact') }}">{{ __('messages.header.contacts') }}</a></li>
                 </ul>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>

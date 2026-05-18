@@ -10,12 +10,12 @@ class Business extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id','businesses_type_id','name','description','address','phone','day_of_week','image','start_time','end_time'
+        'user_id','business_type_id','name','description','address','phone','day_of_week','image','start_time','end_time'
     ];
 
     public function type()
     {
-        return $this->belongsTo(BusinessesTypes::class, 'businesses_type_id');
+        return $this->belongsTo(BusinessType::class, 'business_type_id');
     }
 
     public function owner()

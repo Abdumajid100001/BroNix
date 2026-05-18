@@ -37,6 +37,11 @@
 
         a {
             text-decoration: none;
+            color: var(--default-color);
+        }
+
+        a:hover {
+            text-decoration: underline;
         }
 
         .header {
@@ -51,6 +56,13 @@
 
         .header .container-fluid {
             max-width: 1320px;
+            margin: 0 auto;
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        .main {
+            margin-top: 96px;
         }
 
         .logo {
@@ -105,6 +117,7 @@
         .btn-getstarted:hover {
             background: #5969f3;
             color: #fff;
+            text-decoration: none;
         }
 
         section {
@@ -142,7 +155,7 @@
                 #fff;
             display: flex;
             align-items: center;
-            padding-top: 96px;
+            padding-top: 20px;
         }
 
         .hero h1 {
@@ -155,7 +168,7 @@
         .hero h2 {
             margin: 18px 0 0;
             font-size: 26px;
-            color: color-mix(in srgb, var(--heading-color), transparent 30%);
+            color: #5a6f8f;
             font-weight: 500;
         }
 
@@ -172,6 +185,14 @@
             font-size: 15px;
             font-weight: 600;
             box-shadow: 0 8px 28px rgba(65, 84, 241, 0.32);
+            transition: .3s;
+            text-decoration: none;
+        }
+
+        .hero .btn-get-started:hover {
+            background: #5969f3;
+            text-decoration: none;
+            box-shadow: 0 8px 32px rgba(65, 84, 241, 0.48);
         }
 
         .hero-visual {
@@ -246,6 +267,13 @@
             padding: 10px 30px;
             border-radius: 4px;
             font-weight: 600;
+            transition: .3s;
+            text-decoration: none;
+        }
+
+        .about .read-more:hover {
+            background: #5969f3;
+            text-decoration: none;
         }
 
         .value-card, .service-card, .pricing-card, .faq-item {
@@ -360,6 +388,14 @@
             border-radius: 24px;
             display: inline-block;
             margin-top: 10px;
+            transition: .3s;
+            text-decoration: none;
+        }
+
+        .pricing-card .btn-buy:hover {
+            background: var(--accent-color);
+            color: #fff;
+            text-decoration: none;
         }
 
         .pricing-card.featured {
@@ -402,6 +438,22 @@
         .footer .social-links a:hover {
             color: var(--accent-color);
             border-color: var(--accent-color);
+        }
+
+        .footer a {
+            color: #013289;
+            text-decoration: none;
+            transition: .3s;
+        }
+
+        .footer a:hover {
+            color: var(--accent-color);
+            text-decoration: underline;
+        }
+
+        .footer h5 {
+            color: var(--heading-color);
+            margin-bottom: 1rem;
         }
 
         @media (max-width: 991px) {

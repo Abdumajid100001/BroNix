@@ -29,12 +29,6 @@
                         <span>{{ __('Панель управления') }}</span>
                     </a>
                 </li>
-                <li>
-                    <a href="{{route('wallet')}}" class="{{ request()->routeIs('wallet') ? 'active' : '' }}">
-                        <i data-feather="credit-card"></i>
-                        <span>{{ __('Кошелек') }}</span>
-                    </a>
-                </li>
 
                 <li>
                     <a href="{{ route('owner.businesses.index') }}" class="{{ request()->routeIs('owner.businesses.index', 'owner.businesses.show', 'owner.businesses.edit') ? 'active' : '' }}">
@@ -50,12 +44,6 @@
                     </a>
                 </li>
 
-                <li>
-                    <a href="{{ route('owner.dashboard') }}" class="{{ request()->routeIs('owner.dashboard') ? 'active' : '' }}">
-                        <i data-feather="credit-card"></i>
-                        <span>{{ __('История платежей') }}</span>
-                    </a>
-                </li>
 
                 <li>
                     <a href="{{ route('profile.edit') }}" class="{{ request()->routeIs('profile.edit') ? 'active' : '' }}">
@@ -63,20 +51,12 @@
                         <span>{{ __('Настройки аккаунта') }}</span>
                     </a>
                 </li>
-
-                <li class="menu-title mt-2">{{ __('Переходы') }}</li>
-
-                <li>
-                </li>
-
                 <li>
                     <a href="{{ route('home') }}">
                         <i data-feather="globe"></i>
                         <span>{{ __('Публичный сайт') }}</span>
                     </a>
                 </li>
-
-                <li class="menu-title mt-2">{{ __('Аккаунт') }}</li>
 
                 <li>
                     <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('owner-sidebar-logout-form').submit();">

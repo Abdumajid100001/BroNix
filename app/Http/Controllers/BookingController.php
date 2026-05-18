@@ -2,89 +2,78 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Booking;
-use App\Models\Business;
-use App\Models\Payments;
-use App\Models\Service;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\View\View;
+use App\Models\Business;
+use App\Models\BusinessType;
+use App\Models\Booking;
 
 class BookingController extends Controller
 {
-    public function create(Request $request): View
+    public function index(Request $request)
     {
-        $businesses = Business::with(['type', 'services', 'schedules'])
-            ->latest()
-            ->get();
+        // 1. Категории для левой панели вытаскиваем ВСЕГДА
+        $types = BusinessType::withCount('businesses')->get();
 
-        $selectedBusinessId = (int) $request->query('business', 0);
+        $selectedType = $request->query('type_id');
+        $selectedBusiness = $request->query('business_id');
 
-        return view('public.booking', compact('businesses', 'selectedBusinessId'));
-    }
+        $businesses = collect();
+        $business = null;
 
-    public function store(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'business_id' => ['required', 'exists:businesses,id'],
-            'service_id' => ['required', 'exists:services,id'],
-            'booking_date' => ['required', 'date'],
-            'start_time' => ['required', 'date_format:H:i'],
-            'comment' => ['nullable', 'string', 'max:1000'],
-        ]);
+        // 2. Логика для выбранного конкретного БИЗНЕСА (Шаг 3)
+        if ($selectedBusiness) {
+            $business = Business::with(['services', 'schedules', 'type'])
+                ->findOrFail($selectedBusiness);
 
-        $business = Business::findOrFail($validated['business_id']);
-        $service = Service::where('id', $validated['service_id'])
-            ->where('business_id', $business->id)
-            ->firstOrFail();
-
-        $startTime = $validated['start_time'];
-        $durationMinutes = $this->durationToMinutes((string) $service->duration);
-        $endTime = date('H:i', strtotime($startTime . " +{$durationMinutes} minutes"));
-
-        $booking = DB::transaction(function () use ($request, $business, $service, $validated, $startTime, $endTime) {
-            $booking = Booking::create([
-                'user_id' => $request->user()->id,
-                'business_id' => $business->id,
-                'service_id' => $service->id,
-                'booking_date' => $validated['booking_date'],
-                'start_time' => $startTime,
-                'end_time' => $endTime,
-                'status' => 'pending',
-                'comment' => $validated['comment'] ?? null,
-            ]);
-
-            Payments::create([
-                'user_id' => $request->user()->id,
-                'booking_id' => $booking->id,
-                'amount' => $service->price,
-                'payment_method' => 'online',
-                'status' => 'pending',
-                'paid_at' => null,
-            ]);
-
-            return $booking;
-        });
-
-        return redirect()->route('booking.payment', $booking);
-    }
-
-    public function payment(Booking $booking): View
-    {
-        abort_unless($booking->user_id === auth()->id(), 403);
-
-        $booking->load(['business.type', 'service', 'payment']);
-
-        return view('public.payment', compact('booking'));
-    }
-
-    private function durationToMinutes(string $duration): int
-    {
-        if (preg_match('/(\d+)/', $duration, $matches)) {
-            return max((int) $matches[1], 1);
+            // 🔥 ВОТ ОНО ИСПРАВЛЕНИЕ: Если type_id не передан в URL, но выбран бизнес, 
+            // мы берём type_id прямо из этого бизнеса! Так левая колонка никогда не сломается.
+            if (!$selectedType) {
+                $selectedType = $business->business_type_id;
+            }
         }
 
-        return 60;
+        // 3. БИЗНЕСЫ ПО КАТЕГОРИИ (Шаг 2)
+        // Теперь это сработает и при прямом клике на категорию, и при открытом бизнесе
+        if ($selectedType) {
+            $businesses = Business::with(['services', 'schedules', 'type'])
+                ->where('business_type_id', $selectedType)
+                ->latest()
+                ->get();
+        }
+
+        return view('public.booking', compact(
+            'types',
+            'businesses',
+            'business',
+            'selectedType',
+            'selectedBusiness'
+        ));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'business_id'  => 'required|exists:businesses,id',
+            'service_id'   => 'required|exists:services,id',
+            'booking_date' => 'required|date|after_or_equal:today', // Не даем бронировать прошедшие даты
+            'start_time'   => 'required',
+            'comment'      => 'nullable|string|max:1000',
+        ]);
+
+        // Создаем бронирование
+        Booking::create([
+            'user_id'      => auth()->id(),
+            'business_id'  => $request->business_id,
+            'service_id'   => $request->service_id,
+            'booking_date' => $request->booking_date,
+            'start_time'   => $request->start_time,
+            'end_time'     => $request->start_time, // В будущем можно рассчитывать на основе длительности услуги
+            'status'       => 'pending',
+            'comment'      => $request->comment,
+        ]);
+
+        // После успешного бронирования лучше редиректить пользователя в его личный кабинет 
+        // к списку броней, либо на страницу оплаты, но оставляем на твое усмотрение:
+        return redirect()->back()->with('success', 'Бронирование успешно создано!');
     }
 }

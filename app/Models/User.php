@@ -43,7 +43,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Payments::class);
     }
-
+    public function chats()
+    {
+        return $this->hasMany(\App\Models\Chat::class);
+    }
     public function businesses()
     {
         return $this->hasMany(Business::class);

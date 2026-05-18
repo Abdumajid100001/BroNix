@@ -4,282 +4,220 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
-use App\Models\BusinessesTypes;
-use App\Models\Schedule;
-use Illuminate\Http\RedirectResponse;
+use App\Models\BusinessType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\View\View;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class BusinessesController extends Controller
 {
-    public function index(Request $request): View
+    /**
+     * 1. Список всех бизнесов текущего владельца (owner.businesses.index)
+     */
+    public function index(): View
     {
-        $businesses = Business::with(['type', 'schedules', 'services'])
-            ->where('user_id', $request->user()->id)
-            ->latest()
-            ->get();
+        $user = auth()->user();
+        
+        // Получаем заведения текущего пользователя вместе с их категориями
+        $businesses = $user->businesses()->with('type')->latest()->get();
 
         return view('owner.businesses.index', compact('businesses'));
     }
 
+    /**
+     * 2. Форма создания нового бизнеса (owner.businesses.create)
+     */
     public function create(): View
     {
-        $types = BusinessesTypes::query()->orderBy('name')->get();
+        // Получаем категории для выпадающего списка
+        $types = BusinessType::all();
 
         return view('owner.businesses.create', compact('types'));
     }
 
+    /**
+     * 3. Сохранение нового бизнеса, услуг и графика в БД (owner.businesses.store)
+     */
     public function store(Request $request): RedirectResponse
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'address' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'businesses_type_id' => 'required|exists:businesses_types,id',
-            'image' => 'nullable|image|max:2048',
-            'schedule.*.start' => 'nullable|date_format:H:i',
-            'schedule.*.end' => 'nullable|date_format:H:i',
-            'services' => 'nullable|array',
-            'services.*.name' => 'nullable|string|max:255',
-            'services.*.price' => 'nullable|numeric|min:0',
-            'services.*.duration' => 'nullable|string|max:100',
+        // Валидация всех входящих данных (включая массивы услуг и расписания)
+        $request->validate([
+            'name'                 => 'required|string|max:255',
+            'business_type_id'     => 'required|exists:business_types,id',
+            'address'              => 'required|string|max:255',
+            'phone'                => 'nullable|string|max:20',
+            'description'          => 'nullable|string',
+            'image'                => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            
+            // Валидация массива услуг
+            'services'             => 'required|array|min:1',
+            'services.*.name'      => 'required|string|max:255',
+            'services.*.price'     => 'required|numeric|min:0',
+            'services.*.duration'  => 'nullable|string|max:255',
+            
+            // Валидация массива графика работы
+            'schedule'             => 'required|array',
+            'schedule.*.start'     => 'nullable|string',
+            'schedule.*.end'       => 'nullable|string',
+            'schedule.*.day_off'   => 'nullable|in:1',
         ]);
 
-        $validator->after(function ($validator) use ($request) {
-            $this->validateServicesInput($validator, $request->input('services', []));
-        });
+        // Отсекаем массивы услуг и графика, оставляем только чистые данные для модели Business
+        $data = $request->except(['image', 'services', 'schedule']);
 
-        $data = $validator->validate();
-        $data['user_id'] = $request->user()->id;
-
+        // Обработка и сохранение фотографии на диск
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('business_images', 'public');
+            $data['image'] = $request->file('image')->store('businesses', 'public');
         }
 
-        $business = Business::create($data);
+        // Шаг А: Создаем запись самого бизнеса через связь с пользователем
+        $business = auth()->user()->businesses()->create($data);
 
-        if ($request->user() && !$request->user()->hasRole('owner')) {
-            $request->user()->assignRole('owner');
+        // Шаг Б: Сохраняем все переданные услуги из формы в таблицу услуг
+        if ($request->has('services')) {
+            foreach ($request->input('services') as $serviceData) {
+                $business->services()->create([
+                    'name'     => $serviceData['name'],
+                    'price'    => $serviceData['price'],
+                    'duration' => $serviceData['duration'] ?? null,
+                ]);
+            }
         }
 
-        foreach ($request->input('schedule', []) as $day => $scheduleData) {
-            $this->storeScheduleRow($business->id, $day, $scheduleData);
+        // Шаг В: Сохраняем график работы для каждого дня недели
+        if ($request->has('schedule')) {
+            foreach ($request->input('schedule') as $dayOfWeek => $scheduleData) {
+                $business->schedules()->create([
+                    'day_of_week' => $dayOfWeek,
+                    'start_time'  => $scheduleData['start'] ?? null,
+                    'end_time'    => $scheduleData['end'] ?? null,
+                    'is_day_off'  => isset($scheduleData['day_off']), // true, если чекбокс отмечен
+                ]);
+            }
         }
 
-        $this->syncServices($business, $request->input('services', []));
-
-        return redirect()->route('owner.businesses.index')->with('success', __('Бизнес успешно добавлен.'));
+        return redirect()->route('owner.businesses.index')
+            ->with('success', 'Бизнес, услуги и график работы успешно сохранены!');
     }
 
-    public function show(Request $request, Business $business): View
+    /**
+     * 4. Просмотр конкретного бизнеса (owner.businesses.show)
+     */
+    public function show(Business $business): View
     {
-        $business = $this->ownedBusiness($request, $business);
-        $business->load(['type', 'schedules', 'services']);
+        $this->authorizeOwner($business);
+
+        // Подгружаем услуги и графики для вывода на странице просмотра
+        $business->load(['services', 'schedules']);
 
         return view('owner.businesses.show', compact('business'));
     }
 
-    public function edit(Request $request, Business $business): View
+    /**
+     * 5. Форма редактирования бизнеса (owner.businesses.edit)
+     */
+    public function edit(Business $business): View
     {
-        $business = $this->ownedBusiness($request, $business);
-        $business->load(['schedules', 'services']);
-        $types = BusinessesTypes::query()->orderBy('name')->get();
+        $this->authorizeOwner($business);
+        
+        $types = BusinessType::all();
+        $business->load(['services', 'schedules']);
 
         return view('owner.businesses.edit', compact('business', 'types'));
     }
 
+    /**
+     * 6. Обновление данных бизнеса, услуг и графика в БД (owner.businesses.update)
+     */
     public function update(Request $request, Business $business): RedirectResponse
     {
-        $business = $this->ownedBusiness($request, $business);
+        $this->authorizeOwner($business);
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'address' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'businesses_type_id' => 'required|exists:businesses_types,id',
-            'image' => 'nullable|image|max:2048',
-            'schedule.*.start' => 'nullable|date_format:H:i',
-            'schedule.*.end' => 'nullable|date_format:H:i',
-            'services' => 'nullable|array',
-            'services.*.id' => 'nullable|integer|exists:services,id',
-            'services.*.name' => 'nullable|string|max:255',
-            'services.*.price' => 'nullable|numeric|min:0',
-            'services.*.duration' => 'nullable|string|max:100',
+        $request->validate([
+            'name'                 => 'required|string|max:255',
+            'business_type_id'     => 'required|exists:business_types,id',
+            'address'              => 'required|string|max:255',
+            'phone'                => 'nullable|string|max:20',
+            'description'          => 'nullable|string',
+            'image'                => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            
+            'services'             => 'required|array|min:1',
+            'services.*.name'      => 'required|string|max:255',
+            'services.*.price'     => 'required|numeric|min:0',
+            'services.*.duration'  => 'nullable|string|max:255',
+
+            'schedule'             => 'required|array',
         ]);
 
-        $validator->after(function ($validator) use ($request) {
-            $this->validateServicesInput($validator, $request->input('services', []));
-        });
+        $data = $request->except(['image', 'services', 'schedule']);
 
-        $data = $validator->validate();
-
+        // Если загружена новая картинка — удаляем старую с диска и пишем новую
         if ($request->hasFile('image')) {
             if ($business->image) {
                 Storage::disk('public')->delete($business->image);
             }
-
-            $data['image'] = $request->file('image')->store('business_images', 'public');
+            $data['image'] = $request->file('image')->store('businesses', 'public');
         }
 
+        // Обновляем основные поля бизнеса
         $business->update($data);
 
-        foreach ($request->input('schedule', []) as $day => $scheduleData) {
-            $this->upsertScheduleRow($business, $day, $scheduleData);
+        // Перезаписываем услуги (удаляем старые привязанные и пишем новые из формы)
+        $business->services()->delete();
+        foreach ($request->input('services') as $serviceData) {
+            $business->services()->create([
+                'name'     => $serviceData['name'],
+                'price'    => $serviceData['price'],
+                'duration' => $serviceData['duration'] ?? null,
+            ]);
         }
 
-        $this->syncServices($business, $request->input('services', []));
+        // Перезаписываем график работы
+        $business->schedules()->delete();
+        foreach ($request->input('schedule') as $dayOfWeek => $scheduleData) {
+            $business->schedules()->create([
+                'day_of_week' => $dayOfWeek,
+                'start_time'  => $scheduleData['start'] ?? null,
+                'end_time'    => $scheduleData['end'] ?? null,
+                'is_day_off'  => isset($scheduleData['day_off']),
+            ]);
+        }
 
-        return redirect()->route('owner.businesses.index')->with('success', __('Бизнес успешно обновлён.'));
+        return redirect()->route('owner.businesses.index')
+            ->with('success', 'Данные заведения, услуг и графика успешно обновлены!');
     }
 
-    public function destroy(Request $request, Business $business): RedirectResponse
+    /**
+     * 7. Полное удаление бизнеса со всеми связями (owner.businesses.destroy)
+     */
+    public function destroy(Business $business): RedirectResponse
     {
-        $business = $this->ownedBusiness($request, $business);
+        $this->authorizeOwner($business);
 
+        // Удаляем изображение с диска
         if ($business->image) {
             Storage::disk('public')->delete($business->image);
         }
 
-        $business->schedules()->delete();
+        // Связанные услуги и графики удалятся автоматически, если в миграциях настроено ->onDelete('cascade'),
+        // иначе удаляем вручную перед удалением бизнеса:
         $business->services()->delete();
+        $business->schedules()->delete();
+
         $business->delete();
 
-        return redirect()->route('owner.businesses.index')->with('success', __('Бизнес успешно удалён.'));
+        return redirect()->route('owner.businesses.index')
+            ->with('success', 'Бизнес успешно удален со всеми данными.');
     }
 
-    private function ownedBusiness(Request $request, Business $business): Business
+    /**
+     * Защитная проверка прав доступа (Abortion)
+     */
+    private function authorizeOwner(Business $business): void
     {
-        abort_unless($business->user_id === $request->user()->id, 403);
-
-        return $business;
-    }
-
-    private function storeScheduleRow(int $businessId, string $day, array $scheduleData): void
-    {
-        $startTime = $this->normalizeTime($scheduleData['start'] ?? null);
-        $endTime = $this->normalizeTime($scheduleData['end'] ?? null);
-        $hasTimeRange = (bool) ($startTime && $endTime);
-        $isDayOff = !$hasTimeRange;
-
-        Schedule::create([
-            'business_id' => $businessId,
-            'day_of_week' => $day,
-            'start_time' => $isDayOff ? '00:00' : $startTime,
-            'end_time' => $isDayOff ? '00:00' : $endTime,
-            'is_day_off' => $isDayOff,
-        ]);
-    }
-
-    private function upsertScheduleRow(Business $business, string $day, array $scheduleData): void
-    {
-        $schedule = $business->schedules()->firstOrNew(['day_of_week' => $day]);
-        $startTime = $this->normalizeTime($scheduleData['start'] ?? null);
-        $endTime = $this->normalizeTime($scheduleData['end'] ?? null);
-        $hasTimeRange = (bool) ($startTime && $endTime);
-        $isDayOff = !$hasTimeRange;
-
-        $schedule->business_id = $business->id;
-        $schedule->start_time = $isDayOff ? '00:00' : $startTime;
-        $schedule->end_time = $isDayOff ? '00:00' : $endTime;
-        $schedule->is_day_off = $isDayOff;
-        $schedule->save();
-    }
-
-    private function normalizeTime(?string $value): ?string
-    {
-        if (!$value) {
-            return null;
-        }
-
-        $value = trim($value);
-        if ($value === '' || !preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $value)) {
-            return null;
-        }
-
-        $time = substr($value, 0, 5);
-        [$hours, $minutes] = array_map('intval', explode(':', $time));
-
-        if ($hours < 0 || $hours > 23 || $minutes < 0 || $minutes > 59) {
-            return null;
-        }
-
-        return $time;
-    }
-
-    private function validateServicesInput(\Illuminate\Validation\Validator $validator, array $services): void
-    {
-        foreach ($services as $index => $service) {
-            $name = trim((string) ($service['name'] ?? ''));
-            $price = trim((string) ($service['price'] ?? ''));
-            $duration = trim((string) ($service['duration'] ?? ''));
-            $hasAnyValue = $name !== '' || $price !== '' || $duration !== '';
-
-            if (!$hasAnyValue) {
-                continue;
-            }
-
-            if ($name === '') {
-                $validator->errors()->add("services.$index.name", __('Укажите название услуги.'));
-            }
-
-            if ($price === '') {
-                $validator->errors()->add("services.$index.price", __('Укажите стоимость услуги.'));
-            }
-
-            if ($duration === '') {
-                $validator->errors()->add("services.$index.duration", __('Укажите длительность услуги.'));
-            }
-        }
-    }
-
-    private function syncServices(Business $business, array $servicesInput): void
-    {
-        $services = collect($servicesInput)
-            ->map(function (array $service) {
-                return [
-                    'id' => $service['id'] ?? null,
-                    'name' => trim((string) ($service['name'] ?? '')),
-                    'price' => trim((string) ($service['price'] ?? '')),
-                    'duration' => trim((string) ($service['duration'] ?? '')),
-                ];
-            })
-            ->filter(function (array $service) {
-                return $service['name'] !== '' && $service['price'] !== '' && $service['duration'] !== '';
-            })
-            ->values();
-
-        $existingIds = $business->services()->pluck('id')->all();
-        $keptIds = [];
-
-        foreach ($services as $serviceData) {
-            $serviceId = $serviceData['id'] ? (int) $serviceData['id'] : null;
-            $payload = [
-                'name' => $serviceData['name'],
-                'price' => $serviceData['price'],
-                'duration' => $serviceData['duration'],
-            ];
-
-            if ($serviceId) {
-                $service = $business->services()->whereKey($serviceId)->first();
-
-                if ($service) {
-                    $service->update($payload);
-                    $keptIds[] = $service->id;
-                    continue;
-                }
-            }
-
-            $created = $business->services()->create($payload);
-            $keptIds[] = $created->id;
-        }
-
-        $idsToDelete = array_diff($existingIds, $keptIds);
-        if ($idsToDelete !== []) {
-            $business->services()->whereIn('id', $idsToDelete)->delete();
+        if ($business->user_id !== auth()->id()) {
+            abort(403, 'У вас нет доступа к управлению этим заведением.');
         }
     }
 }

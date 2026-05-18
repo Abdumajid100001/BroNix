@@ -1,87 +1,65 @@
-@include('public.partials.header')
-
-<main class="main">
-    <section class="section" style="padding-top: 140px;">
-        <div class="container">
-            <div class="row justify-content-center mb-5">
-                <div class="col-lg-8 text-center">
-                    <h1 class="mb-3">{{ __('messages.payment_page.title') }}</h1>
-                    <p class="mb-0">{{ __('messages.payment_page.description') }}</p>
-                </div>
-            </div>
-
-            <div class="row g-4 justify-content-center">
-                <div class="col-lg-7">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-body p-4 p-lg-5">
-                            <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-                                <div>
-                                    <span class="badge bg-warning-subtle text-warning mb-2">{{ __('messages.payment_page.pending') }}</span>
-                                    <h2 class="h3 mb-1">{{ $booking->business->name }}</h2>
-                                    <p class="text-muted mb-0">{{ $booking->business->type->name ?? __('messages.common.uncategorized') }}</p>
-                                </div>
-                                <div class="text-end">
-                                    <div class="small text-muted">{{ __('messages.common.amount') }}</div>
-                                    <div class="h4 mb-0">{{ number_format((float) $booking->payment->amount, 0, '.', ' ') }} {{ __('messages.common.currency') }}</div>
-                                </div>
-                            </div>
-
-                            <div class="row g-3 mb-4">
-                                <div class="col-md-6">
-                                    <div class="border rounded-4 p-3 h-100">
-                                        <div class="small text-muted mb-1">{{ __('messages.common.service') }}</div>
-                                        <strong>{{ $booking->service->name }}</strong>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="border rounded-4 p-3 h-100">
-                                        <div class="small text-muted mb-1">{{ __('messages.common.date') }}</div>
-                                        <strong>{{ \Carbon\Carbon::parse($booking->booking_date)->format('d.m.Y') }}</strong>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="border rounded-4 p-3 h-100">
-                                        <div class="small text-muted mb-1">{{ __('messages.common.time') }}</div>
-                                        <strong>{{ \Illuminate\Support\Str::substr($booking->start_time, 0, 5) }} - {{ \Illuminate\Support\Str::substr($booking->end_time, 0, 5) }}</strong>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="border rounded-4 p-3 h-100">
-                                        <div class="small text-muted mb-1">{{ __('messages.common.status') }}</div>
-                                        <strong>{{ $booking->payment->status === 'pending' ? __('messages.payment_page.pending') : $booking->payment->status }}</strong>
-                                    </div>
-                                </div>
-                            </div>
-
-                            @if($booking->comment)
-                                <div class="border rounded-4 p-3 mb-4">
-                                    <div class="small text-muted mb-1">{{ __('messages.common.comment') }}</div>
-                                    <div>{{ $booking->comment }}</div>
-                                </div>
-                            @endif
-
-                            <div class="d-flex flex-column gap-3">
-                                <button type="button" class="btn btn-primary btn-lg">{{ __('messages.payment_page.pay_button') }}</button>
-                                <a href="{{ route('booking.page') }}" class="btn btn-outline-secondary">{{ __('messages.payment_page.back_button') }}</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card border-0 shadow-sm rounded-4">
-                        <div class="card-body p-4">
-                            <h3 class="h5 mb-3">{{ __('messages.payment_page.next_title') }}</h3>
-                            <div class="small text-muted d-flex flex-column gap-3">
-                                <div>{{ __('messages.payment_page.step_1') }}</div>
-                                <div>{{ __('messages.payment_page.step_2') }}</div>
-                                <div>{{ __('messages.payment_page.step_3') }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div class="card-body p-4 p-lg-5">
+    @if(session('success'))
+        <div id="booking-success-alert" class="booking-success-alert">
+            <div class="booking-success-icon">✓</div>
+            <div class="booking-success-text">
+                {{ session('success') }}
             </div>
         </div>
-    </section>
-</main>
 
-@include('public.partials.footer')
+        <style>
+            .booking-success-alert {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                background: #f8fffb;
+                border: 1px solid #d9f5e4;
+                border-radius: 16px;
+                padding: 16px 20px;
+                margin-bottom: 24px;
+                animation: fadeIn 0.4s ease;
+            }
+
+            .booking-success-icon {
+                width: 34px;
+                height: 34px;
+                border-radius: 50%;
+                background: #22c55e;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                font-size: 14px;
+                flex-shrink: 0;
+            }
+
+            .booking-success-text {
+                color: #1f2937;
+                font-size: 15px;
+                font-weight: 500;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-8px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+
+        <script>
+            setTimeout(() => {
+                const alert = document.getElementById('booking-success-alert');
+                if(alert){
+                    alert.style.transition = '0.4s';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 400);
+                }
+            }, 3000);
+        </script>
+@endif

@@ -1,6 +1,7 @@
 ﻿@extends('admin.layouts.app')
 
-@section('title', __('Поиск') . ' | BroNix')
+@section('title', __('Поиск'))
+@section('page_title', __('Поиск'))
 
 @section('header')
     <p class="text-muted mb-0 mt-1">{{ __('Результаты поиска по страницам админ-панели.') }}</p>
