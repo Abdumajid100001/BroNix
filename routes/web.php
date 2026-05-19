@@ -18,6 +18,14 @@ use App\Models\Booking;
 use App\Models\Business;
 use Illuminate\Support\Facades\Route;
 
+
+// Маршрут для переключения языков
+Route::get('lang/{lang}', function ($lang) {
+    if (in_array($lang, ['en', 'ru', 'tj'])) {
+        session(['locale' => $lang]);
+    }
+    return redirect()->back();
+})->name('lang.switch');
 /* ==========================================================================
     PUBLIC ROUTES (ПУБЛИЧНЫЕ СТРАНИЦЫ)
 ========================================================================== */
@@ -108,9 +116,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    /* ==========================================
-        OWNER ZONE (ПАНЕЛЬ ВЛАДЕЛЬЦА БИЗНЕСА)
-    ========================================== */
+    /* ==========================================================================
+        OWNER ZONE (ПАНЕЛЬ ВЛАДЕЛЬЦА БИЗНЕСА) — ОБНОВЛЕНО ДЛЯ МОДАЛКИ И КАЛЕНДАРЯ
+    ========================================================================= */
     Route::prefix('owner')->name('owner.')->middleware(['role:owner|business'])->group(function () {
         
         // Главная страница панели (Дашборд)
@@ -118,11 +126,19 @@ Route::middleware('auth')->group(function () {
         
         // Календарь и управление записями
         Route::get('/bookings/calendar', [OwnerDashboardController::class, 'calendar'])->name('bookings.calendar');
+        
+        // AJAX API для интерактивного календаря (Загрузка данных в модалку)
         Route::get('/bookings/day/{date}', [OwnerDashboardController::class, 'dayBookings'])->name('bookings.day');
+        Route::get('/bookings/month/{year_month}', [OwnerDashboardController::class, 'monthBookings'])->name('bookings.month');
+        
+        // Действия с бронированиями
         Route::post('/bookings/store', [OwnerDashboardController::class, 'storeBooking'])->name('bookings.store');
         Route::post('/bookings/update-time/{id}', [OwnerDashboardController::class, 'updateBookingTime'])->name('bookings.updateTime');
+        
+        // Одобрение (подтверждение) бронирования владельцем через модальное окно
+        Route::post('/bookings/confirm/{id}', [OwnerDashboardController::class, 'confirmBooking'])->name('bookings.confirm');
 
-        // Управление бизнесом (Автоматически создает: owner.businesses.index, .create, .edit, .destroy и т.д.)
+        // Управление бизнесом (CRUD: Index, Create, Edit, Update, Destroy)
         Route::resource('businesses', OwnerBusinessesController::class);
     });
 

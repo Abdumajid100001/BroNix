@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация | BroNix</title>
-    <meta name="description" content="Создайте аккаунт BroNix и начните работать с каталогом, онлайн-записью и клиентскими заявками в одном кабинете.">
+    <meta name="description" content="Создайте аккаунт BroNix и начните управлять бронированиями.">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=manrope:400,500,600,700,800&display=swap" rel="stylesheet">
@@ -16,781 +16,555 @@
 
     <style>
         :root {
-            --auth-accent: #1a9b6b;
-            --auth-accent-soft: rgba(26, 155, 107, 0.14);
-            --auth-highlight: #7dd7ff;
-            --auth-ink: #122238;
-            --auth-muted: #61738c;
-            --auth-line: rgba(18, 34, 56, 0.12);
-            --auth-surface: rgba(255, 255, 255, 0.9);
-            --auth-surface-strong: rgba(255, 255, 255, 0.97);
-            --auth-deep: #10213a;
-            --auth-forest: #154f57;
-        }
-
-        * {
-            box-sizing: border-box;
+            --brx-primary: #ff5a2b; /* Фирменный оранжевый */
+            --brx-primary-hover: #e0481d;
+            --brx-primary-soft: rgba(255, 90, 43, 0.06);
+            --brx-dark-panel: #111625; /* Темный фон для Hero-блока */
+            
+            --brx-bg: #f8fafc;
+            --brx-ink: #0f172a;
+            --brx-muted: #64748b;
+            --brx-line: rgba(15, 23, 42, 0.08);
+            
+            /* Настройки премиальной карточки */
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-border: rgba(255, 255, 255, 0.7);
+            --card-shadow: 0 30px 80px rgba(15, 23, 42, 0.08);
         }
 
         body.auth-page {
             min-height: 100vh;
             margin: 0;
             font-family: "Manrope", sans-serif;
-            background:
-                radial-gradient(circle at top right, rgba(125, 215, 255, 0.22), transparent 28%),
-                radial-gradient(circle at bottom left, rgba(26, 155, 107, 0.18), transparent 26%),
-                linear-gradient(135deg, #f5fffb 0%, #f3fbff 48%, #eef5ff 100%);
-            color: var(--auth-ink);
+            background-color: var(--brx-bg);
+            color: var(--brx-ink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow-x: hidden;
+            padding: 40px 20px;
+        }
+
+        /* Элегантное неоновое свечение на фоне (Aurora UI) */
+        body.auth-page::before,
+        body.auth-page::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 1;
         }
 
         body.auth-page::before {
-            content: "";
-            position: fixed;
-            inset: 18px;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255, 90, 43, 0.12) 0%, transparent 70%);
+            top: -10%;
+            right: -10%;
+        }
+
+        body.auth-page::after {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(15, 23, 42, 0.04) 0%, transparent 70%);
+            bottom: -15%;
+            left: -10%;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 1050px; /* Ширина под двухколоночную карточку */
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Центрированная двухколоночная карточка */
+        .auth-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
             border-radius: 32px;
-            border: 1px solid rgba(18, 34, 56, 0.06);
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        /* Левая сторона: Форма */
+        .auth-form-column {
+            padding: 45px 50px;
+        }
+
+        /* Правая сторона: Hero-блок преимуществ */
+        .auth-hero-column {
+            background: var(--brx-dark-panel);
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Свечение внутри темного Hero-блока */
+        .auth-hero-column::before {
+            content: "";
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(255, 90, 43, 0.1) 0%, transparent 70%);
+            top: -50px;
+            right: -50px;
             pointer-events: none;
         }
 
-        .auth-shell {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 28px 0;
-        }
-
-        .auth-frame {
-            overflow: hidden;
-            border-radius: 36px;
-            background: var(--auth-surface);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            box-shadow: 0 30px 90px rgba(18, 34, 56, 0.14);
-            backdrop-filter: blur(18px);
-        }
-
-        .auth-form-panel {
-            padding: 42px 38px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), var(--auth-surface-strong));
-        }
-
-        .auth-story-panel {
-            position: relative;
-            overflow: hidden;
-            padding: 48px;
-            color: #fff;
-            background:
-                radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 24%),
-                radial-gradient(circle at bottom right, rgba(125, 215, 255, 0.22), transparent 22%),
-                linear-gradient(155deg, var(--auth-deep) 0%, #155b69 52%, #1a9b6b 100%);
-        }
-
-        .auth-story-panel::after {
-            content: "";
-            position: absolute;
-            left: -90px;
-            bottom: -90px;
-            width: 250px;
-            height: 250px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .brand-mark {
-            display: inline-flex;
-            align-items: center;
-            gap: 14px;
-            text-decoration: none;
-            color: inherit;
-            font-weight: 800;
-            font-size: 1.1rem;
-        }
-
-        .brand-mark__icon {
-            width: 48px;
-            height: 48px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-        }
-
-        .auth-kicker {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            min-height: 38px;
-            padding: 0 16px;
-            margin-top: 24px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.14);
-            border: 1px solid rgba(255, 255, 255, 0.16);
-            font-size: 0.86rem;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .story-title {
-            margin: 22px 0 18px;
-            font-size: clamp(2.45rem, 3vw, 4.15rem);
-            line-height: 0.96;
-            font-weight: 800;
-            max-width: 560px;
-        }
-
-        .story-copy {
-            max-width: 560px;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1rem;
-            line-height: 1.75;
-        }
-
-        .story-flow {
-            display: grid;
-            gap: 14px;
-            margin-top: 28px;
-        }
-
-        .story-step {
-            position: relative;
-            display: grid;
-            grid-template-columns: 54px 1fr;
-            gap: 14px;
-            align-items: start;
-            padding: 18px;
-            border-radius: 24px;
-            background: rgba(11, 25, 42, 0.18);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .story-step__index {
-            width: 54px;
-            height: 54px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 18px;
-            background: rgba(255, 255, 255, 0.12);
-            color: var(--auth-highlight);
-            font-weight: 800;
-            font-size: 1.15rem;
-        }
-
-        .story-step strong {
-            display: block;
-            font-size: 1rem;
-            margin-bottom: 6px;
-        }
-
-        .story-step span {
-            display: block;
-            color: rgba(255, 255, 255, 0.76);
-            font-size: 0.93rem;
-            line-height: 1.6;
-        }
-
-        .story-stats {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
-            margin-top: 28px;
-        }
-
-        .story-stat {
-            padding: 18px;
-            border-radius: 24px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-        }
-
-        .story-stat strong {
-            display: block;
-            font-size: 1.45rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-        }
-
-        .story-stat span {
-            display: block;
-            color: rgba(255, 255, 255, 0.74);
-            font-size: 0.92rem;
-            line-height: 1.5;
-        }
-
-        .auth-back {
+        .back-link {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            color: var(--auth-ink);
+            color: var(--brx-muted);
             text-decoration: none;
-            font-weight: 700;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: color 0.2s;
+            margin-bottom: 24px;
         }
+        .back-link:hover { color: var(--brx-ink); }
 
-        .auth-back:hover {
-            color: var(--auth-accent);
-        }
-
-        .form-shell {
-            max-width: 470px;
-            margin-inline: auto;
-        }
-
-        .form-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            min-height: 36px;
-            padding: 0 14px;
-            border-radius: 999px;
-            background: var(--auth-accent-soft);
-            color: var(--auth-accent);
-            font-size: 0.82rem;
+        .form-header h2 {
+            font-size: 2rem;
             font-weight: 800;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: -0.03em;
+            color: #0b132a;
         }
 
-        .form-title {
-            margin: 18px 0 12px;
-            font-size: 2.2rem;
-            line-height: 1.02;
-            font-weight: 800;
-        }
-
-        .form-copy {
-            margin: 0 0 26px;
-            color: var(--auth-muted);
-            line-height: 1.75;
-        }
-
-        .auth-alert {
-            padding: 14px 16px;
-            border-radius: 18px;
-            margin-bottom: 18px;
-            border: 1px solid rgba(220, 53, 69, 0.14);
-            background: rgba(220, 53, 69, 0.09);
-            color: #a62f43;
+        .form-header p {
+            color: var(--brx-muted);
             font-size: 0.95rem;
+            margin-bottom: 28px;
         }
 
-        .auth-alert ul {
-            margin: 0;
-            padding-left: 18px;
-        }
-
-        .field-row {
+        /* Поля ввода (Input) */
+        .input-group-custom {
             margin-bottom: 18px;
         }
 
-        .field-label {
-            display: inline-block;
-            margin-bottom: 10px;
-            font-size: 0.92rem;
-            font-weight: 700;
-            color: var(--auth-ink);
+        .input-group-custom label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 7px;
+            color: #334155;
         }
 
-        .field-shell {
+        .input-wrapper {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 12px;
-            min-height: 60px;
-            padding: 0 16px;
-            border-radius: 18px;
-            background: #fff;
-            border: 1px solid var(--auth-line);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
         }
 
-        .field-shell:focus-within {
-            border-color: rgba(26, 155, 107, 0.38);
-            box-shadow: 0 0 0 4px rgba(26, 155, 107, 0.12);
-            transform: translateY(-1px);
+        .input-wrapper i.input-icon {
+            position: absolute;
+            left: 16px;
+            color: var(--brx-primary);
+            font-size: 1.1rem;
+            pointer-events: none;
         }
 
-        .field-icon {
-            color: var(--auth-accent);
-            font-size: 1rem;
+        .input-wrapper input {
+            width: 100%;
+            padding: 13px 16px 13px 46px;
+            border: 1px solid var(--brx-line);
+            border-radius: 14px;
+            background: #f8fafc;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--brx-ink);
+            transition: all 0.2s ease;
         }
 
-        .field-shell input {
-            flex: 1;
-            min-height: 58px;
-            border: none;
-            background: transparent;
-            color: var(--auth-ink);
-            font-size: 0.98rem;
+        .input-wrapper input:focus {
             outline: none;
-            box-shadow: none;
-            padding: 0;
+            border-color: var(--brx-primary);
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 90, 43, 0.08);
         }
 
-        .field-shell input::placeholder {
-            color: #90a0b4;
-        }
-
-        .field-toggle {
-            flex-shrink: 0;
-            width: 38px;
-            height: 38px;
-            border: none;
-            border-radius: 12px;
-            background: rgba(18, 34, 56, 0.05);
-            color: var(--auth-muted);
-        }
-
-        .role-grid {
+        /* Выбор Ролей */
+        .role-selector {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
         }
 
         .role-card {
+            position: relative;
             display: block;
-            margin: 0;
             cursor: pointer;
         }
 
-        .role-card__input {
+        .role-card input {
             position: absolute;
             opacity: 0;
             pointer-events: none;
         }
 
-        .role-card__body {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            height: 100%;
-            padding: 18px;
-            border-radius: 22px;
-            border: 1px solid var(--auth-line);
-            background: rgba(255, 255, 255, 0.82);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
-        }
-
-        .role-card:hover .role-card__body {
-            transform: translateY(-1px);
-        }
-
-        .role-card__input:checked + .role-card__body {
-            border-color: rgba(26, 155, 107, 0.34);
-            background: rgba(26, 155, 107, 0.08);
-            box-shadow: 0 16px 36px rgba(26, 155, 107, 0.14);
-            transform: translateY(-2px);
-        }
-
-        .role-card__icon {
-            width: 42px;
-            height: 42px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        .role-box {
+            display: block;
+            padding: 12px;
             border-radius: 14px;
-            background: rgba(26, 155, 107, 0.1);
-            color: var(--auth-accent);
-            font-size: 1rem;
+            border: 1px solid var(--brx-line);
+            background: #ffffff;
+            text-align: center;
+            transition: all 0.2s ease;
         }
 
-        .role-card__title {
+        .role-box i {
+            font-size: 1.2rem;
             display: block;
-            font-size: 1rem;
-            font-weight: 800;
-            color: var(--auth-ink);
+            margin-bottom: 4px;
+            color: var(--brx-muted);
         }
 
-        .role-card__text {
-            display: block;
-            color: var(--auth-muted);
-            font-size: 0.92rem;
-            line-height: 1.6;
+        .role-box span {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--brx-muted);
         }
 
-        .password-note {
-            margin-top: 10px;
-            color: var(--auth-muted);
-            font-size: 0.86rem;
-            line-height: 1.6;
+        .role-card:hover .role-box { border-color: #cbd5e1; }
+
+        .role-card input:checked + .role-box {
+            border-color: var(--brx-primary);
+            background: var(--brx-primary-soft);
         }
 
-        .submit-btn {
-            width: 100%;
-            min-height: 58px;
+        .role-card input:checked + .role-box i,
+        .role-card input:checked + .role-box span {
+            color: var(--brx-primary);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 14px;
+            background: none;
             border: none;
-            border-radius: 20px;
-            background: linear-gradient(135deg, var(--auth-accent) 0%, #157b93 100%);
-            color: #fff;
+            color: var(--brx-muted);
+            cursor: pointer;
+        }
+
+        /* Кнопка отправки */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #ff6b3d 0%, var(--brx-primary) 100%);
+            color: #ffffff;
             font-size: 1rem;
-            font-weight: 800;
-            box-shadow: 0 16px 38px rgba(26, 155, 107, 0.24);
+            font-weight: 700;
+            box-shadow: 0 8px 22px rgba(255, 90, 43, 0.15);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            margin-top: 8px;
         }
 
-        .submit-btn:hover {
-            filter: brightness(1.02);
+        .btn-submit:hover {
+            filter: brightness(1.04);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(255, 90, 43, 0.25);
         }
 
+        /* Разделитель */
         .divider {
             display: flex;
             align-items: center;
-            gap: 16px;
-            margin: 26px 0 18px;
-            color: var(--auth-muted);
-            font-size: 0.88rem;
-            font-weight: 700;
+            text-align: center;
+            margin: 22px 0 16px;
+            color: #94a3b8;
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.05em;
+            font-weight: 700;
         }
+        .divider::before, .divider::after { content: ""; flex: 1; border-bottom: 1px solid var(--brx-line); }
+        .divider:not(:empty)::before { margin-right: 1.5em; }
+        .divider:not(:empty)::after { margin-left: 1.5em; }
 
-        .divider::before,
-        .divider::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: var(--auth-line);
-        }
-
-        .social-grid {
+        /* Социальные кнопки */
+        .social-row {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 12px;
         }
 
-        .social-btn {
-            min-height: 54px;
-            display: inline-flex;
+        .btn-social {
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            border-radius: 18px;
-            border: 1px solid var(--auth-line);
-            background: #fff;
-            color: var(--auth-ink);
+            padding: 12px;
+            border: 1px solid var(--brx-line);
+            border-radius: 14px;
+            background: #ffffff;
+            color: var(--brx-ink);
             text-decoration: none;
-            font-weight: 700;
-            transition: border-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s;
         }
+        .btn-social:hover { background: #f1f5f9; border-color: #cbd5e1; }
 
-        .social-btn:hover {
-            border-color: rgba(26, 155, 107, 0.28);
-            color: var(--auth-accent);
-            transform: translateY(-1px);
+        .form-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 0.92rem;
+            color: var(--brx-muted);
         }
+        .form-footer a { color: var(--brx-primary); font-weight: 700; text-decoration: none; }
+        .form-footer a:hover { text-decoration: underline; }
 
-        .auth-footer {
-            margin-top: 22px;
-            color: var(--auth-muted);
-            font-size: 0.95rem;
-        }
-
-        .auth-footer a {
-            color: var(--auth-ink);
+        /* СТИЛИ HERO СЕКЦИИ (Правая панель карточки) */
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ffffff;
+            text-decoration: none;
             font-weight: 800;
-            text-decoration: none;
+            font-size: 1.4rem;
+            letter-spacing: -0.03em;
+        }
+        .brand-logo i { color: var(--brx-primary); }
+
+        .info-title {
+            color: #ffffff;
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.25;
+            letter-spacing: -0.03em;
+            margin: 40px 0;
         }
 
-        .auth-footer a:hover {
-            color: var(--auth-accent);
+        .step-list {
+            display: grid;
+            gap: 24px;
         }
 
-        @media (max-width: 1199.98px) {
-            .auth-story-panel,
-            .auth-form-panel {
-                padding: 36px;
-            }
+        .step-item {
+            display: flex;
+            gap: 18px;
+            align-items: flex-start;
         }
 
-        @media (max-width: 991.98px) {
-            body.auth-page::before {
-                inset: 10px;
-                border-radius: 24px;
-            }
-
-            .auth-frame {
-                border-radius: 28px;
-            }
-
-            .auth-story-panel,
-            .auth-form-panel {
-                padding: 30px 24px;
-            }
+        .step-icon {
+            width: 38px;
+            height: 38px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--brx-primary);
+            font-size: 1rem;
+            flex-shrink: 0;
         }
 
-        @media (max-width: 575.98px) {
-            .form-title,
-            .story-title {
-                font-size: 1.95rem;
-            }
+        .step-text h4 {
+            color: #ffffff;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 4px 0;
+        }
 
-            .role-grid,
-            .story-stats,
-            .social-grid {
-                grid-template-columns: 1fr;
-            }
+        .step-text p {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .info-footer {
+            color: #475569;
+            font-size: 0.85rem;
+            margin-top: 40px;
+        }
+
+        /* Адаптивность: на планшетах и мобилках прячем Hero-блок и оставляем только форму */
+        @media (max-width: 991px) {
+            .auth-hero-column { display: none; }
+            .auth-card { max-width: 540px; margin: 0 auto; }
+            .auth-form-column { padding: 35px 25px; }
+        }
+
+        @media (max-width: 575px) {
+            .role-selector { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body class="auth-page">
-<section class="auth-shell">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-12 col-xl-11">
-                <div class="auth-frame">
-                    <div class="row g-0 align-items-stretch">
-                        <div class="col-lg-7 order-2 order-lg-1">
-                            <div class="auth-story-panel h-100">
-                                <a href="{{ route('home') }}" class="brand-mark">
-                                    <span class="brand-mark__icon"><i class="bi bi-calendar2-check"></i></span>
-                                    <span>BroNix</span>
-                                </a>
 
-                                <div class="auth-kicker">
-                                    <i class="bi bi-stars"></i>
-                                    <span>Новый аккаунт</span>
-                                </div>
+<div class="auth-container">
+    
+    <div class="auth-card">
+        <div class="row g-0">
+            
+            <div class="col-lg-6">
+                <div class="auth-form-column">
+                    <a href="{{ route('home') }}" class="back-link">
+                        <i class="bi bi-arrow-left"></i> На главную
+                    </a>
 
-                                <h1 class="story-title">Создайте профиль и соберите свою витрину за пару минут</h1>
-                                <p class="story-copy">
-                                    Регистрация в BroNix открывает доступ к каталогу, бронированиям и управлению услугами.
-                                    Выберите роль и сразу начните работать в подходящем сценарии.
-                                </p>
+                    <div class="form-header">
+                        <h2>Создать профиль</h2>
+                        <p>Присоединяйтесь к BroNix и начните работу</p>
+                    </div>
 
-                                <div class="story-flow">
-                                    <div class="story-step">
-                                        <span class="story-step__index">1</span>
-                                        <div>
-                                            <strong>Выберите тип аккаунта</strong>
-                                            <span>Клиенту нужен быстрый доступ к записям, владельцу — управление бизнесом и расписанием.</span>
-                                        </div>
-                                    </div>
-                                    <div class="story-step">
-                                        <span class="story-step__index">2</span>
-                                        <div>
-                                            <strong>Заполните базовые данные</strong>
-                                            <span>Имя, email и пароль создают основу для безопасного входа и персонального кабинета.</span>
-                                        </div>
-                                    </div>
-                                    <div class="story-step">
-                                        <span class="story-step__index">3</span>
-                                        <div>
-                                            <strong>Запускайте работу сразу</strong>
-                                            <span>После регистрации можно переходить к каталогу, бронированию и настройке своего профиля.</span>
-                                        </div>
-                                    </div>
-                                </div>
+                    {{-- Ошибки валидации Laravel --}}
+                    @if ($errors->any())
+                        <div class="alert alert-danger border-0 rounded-4 py-3 mb-4" style="font-size: 0.85rem;">
+                            <ul class="mb-0 ps-3">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
 
-                                <div class="story-stats">
-                                    <div class="story-stat">
-                                        <strong>2 роли</strong>
-                                        <span>клиентский и бизнес-сценарий внутри одной платформы</span>
-                                    </div>
-                                    <div class="story-stat">
-                                        <strong>1 старт</strong>
-                                        <span>регистрация без лишних шагов и дублирующих экранов</span>
-                                    </div>
-                                    <div class="story-stat">
-                                        <strong>Гибко</strong>
-                                        <span>подходит для записи, каталога и управления услугами</span>
-                                    </div>
-                                </div>
+                    <form method="POST" action="{{ route('register') }}">
+                        @csrf
+
+                        <div class="input-group-custom">
+                            <label for="name">Ваше имя</label>
+                            <div class="input-wrapper">
+                                <i class="bi bi-person input-icon"></i>
+                                <input type="text" id="name" name="name" value="{{ old('name') }}" required autofocus placeholder="Иван Иванов">
                             </div>
                         </div>
 
-                        <div class="col-lg-5 order-1 order-lg-2">
-                            <div class="auth-form-panel h-100 d-flex align-items-center">
-                                <div class="form-shell w-100">
-                                    <a href="{{ route('home') }}" class="auth-back mb-4">
-                                        <i class="bi bi-arrow-left"></i>
-                                        <span>На главную</span>
-                                    </a>
+                        <div class="input-group-custom">
+                            <label for="email">Email адрес</label>
+                            <div class="input-wrapper">
+                                <i class="bi bi-envelope input-icon"></i>
+                                <input type="email" id="email" name="email" value="{{ old('email') }}" required placeholder="user@gmail.com">
+                            </div>
+                        </div>
 
-                                    <div class="form-chip">
-                                        <i class="bi bi-person-plus-fill"></i>
-                                        <span>Регистрация</span>
-                                    </div>
+                        <div class="input-group-custom">
+                            <label>Кто вы?</label>
+                            <div class="role-selector">
+                                <label class="role-card">
+                                    <input type="radio" name="account_type" value="user" {{ old('account_type', 'user') === 'user' ? 'checked' : '' }}>
+                                    <span class="role-box">
+                                        <i class="bi bi-emoji-smile"></i>
+                                        <span>Я клиент</span>
+                                    </span>
+                                </label>
+                                <label class="role-card">
+                                    <input type="radio" name="account_type" value="owner" {{ old('account_type') === 'owner' ? 'checked' : '' }}>
+                                    <span class="role-box">
+                                        <i class="bi bi-briefcase"></i>
+                                        <span>Я бизнес</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
 
-                                    <h2 class="form-title">Создайте аккаунт</h2>
-                                    <p class="form-copy">
-                                        Заполните форму ниже и выберите роль, с которой хотите начать работу в BroNix.
-                                    </p>
+                        <div class="input-group-custom">
+                            <label for="password">Пароль</label>
+                            <div class="input-wrapper">
+                                <i class="bi bi-shield-lock input-icon"></i>
+                                <input type="password" id="password" name="password" required placeholder="••••••••">
+                                <button class="password-toggle" type="button" data-password-toggle data-target="password" aria-label="Показать пароль">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
 
-                                    @if ($errors->any())
-                                        <div class="auth-alert" role="alert">
-                                            <ul>
-                                                @foreach ($errors->all() as $error)
-                                                    <li>{{ $error }}</li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
-                                    @endif
+                        <button class="btn-submit" type="submit">Зарегистрироваться</button>
+                    </form>
 
-                                    <form method="POST" action="{{ route('register') }}">
-                                        @csrf
+                    <div class="divider">или через соцсети</div>
 
-                                        <div class="field-row">
-                                            <label for="name" class="field-label">Имя</label>
-                                            <div class="field-shell">
-                                                <span class="field-icon"><i class="bi bi-person"></i></span>
-                                                <input
-                                                    id="name"
-                                                    type="text"
-                                                    name="name"
-                                                    value="{{ old('name') }}"
-                                                    required
-                                                    autocomplete="name"
-                                                    autofocus
-                                                    placeholder="Введите ваше имя"
-                                                >
-                                            </div>
-                                        </div>
+                    <div class="social-row">
+                        <a class="btn-social" href="{{ route('social.redirect', ['provider' => 'google']) }}">
+                            <i class="bi bi-google text-danger"></i> Google
+                        </a>
+                        <a class="btn-social" href="{{ route('social.redirect', ['provider' => 'github']) }}">
+                            <i class="bi bi-github"></i> GitHub
+                        </a>
+                    </div>
 
-                                        <div class="field-row">
-                                            <label for="email" class="field-label">Email</label>
-                                            <div class="field-shell">
-                                                <span class="field-icon"><i class="bi bi-at"></i></span>
-                                                <input
-                                                    id="email"
-                                                    type="email"
-                                                    name="email"
-                                                    value="{{ old('email') }}"
-                                                    required
-                                                    autocomplete="username"
-                                                    placeholder="you@example.com"
-                                                >
-                                            </div>
-                                        </div>
+                    <p class="form-footer">
+                        Уже есть аккаунт? <a href="{{ route('login') }}">Войти</a>
+                    </p>
+                </div>
+            </div>
 
-                                        <div class="field-row">
-                                            <span class="field-label">Тип аккаунта</span>
-                                            <div class="role-grid">
-                                                <label class="role-card">
-                                                    <input
-                                                        class="role-card__input"
-                                                        type="radio"
-                                                        name="account_type"
-                                                        value="user"
-                                                        {{ old('account_type', 'user') === 'user' ? 'checked' : '' }}
-                                                    >
-                                                    <span class="role-card__body">
-                                                        <span class="role-card__icon"><i class="bi bi-person"></i></span>
-                                                        <span class="role-card__title">Клиент</span>
-                                                        <span class="role-card__text">Для поиска услуг, записи и управления своими бронированиями.</span>
-                                                    </span>
-                                                </label>
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="auth-hero-column">
+                    <a href="{{ route('home') }}" class="brand-logo">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                        <span>BroNix</span>
+                    </a>
 
-                                                <label class="role-card">
-                                                    <input
-                                                        class="role-card__input"
-                                                        type="radio"
-                                                        name="account_type"
-                                                        value="owner"
-                                                        {{ old('account_type') === 'owner' ? 'checked' : '' }}
-                                                    >
-                                                    <span class="role-card__body">
-                                                        <span class="role-card__icon"><i class="bi bi-building"></i></span>
-                                                        <span class="role-card__title">Владелец</span>
-                                                        <span class="role-card__text">Для добавления бизнеса, услуг, расписания и управления заявками.</span>
-                                                    </span>
-                                                </label>
-                                            </div>
-                                        </div>
-
-                                        <div class="field-row">
-                                            <label for="password" class="field-label">Пароль</label>
-                                            <div class="field-shell">
-                                                <span class="field-icon"><i class="bi bi-lock"></i></span>
-                                                <input
-                                                    id="password"
-                                                    type="password"
-                                                    name="password"
-                                                    required
-                                                    autocomplete="new-password"
-                                                    placeholder="Придумайте пароль"
-                                                >
-                                                <button
-                                                    class="field-toggle"
-                                                    type="button"
-                                                    data-password-toggle
-                                                    data-target="password"
-                                                    aria-label="Показать пароль"
-                                                >
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </div>
-                                            <div class="password-note">Используйте не менее 8 символов, чтобы аккаунт был защищённее.</div>
-                                        </div>
-
-                                        <div class="field-row">
-                                            <label for="password_confirmation" class="field-label">Повторите пароль</label>
-                                            <div class="field-shell">
-                                                <span class="field-icon"><i class="bi bi-shield-check"></i></span>
-                                                <input
-                                                    id="password_confirmation"
-                                                    type="password"
-                                                    name="password_confirmation"
-                                                    required
-                                                    autocomplete="new-password"
-                                                    placeholder="Повторите пароль"
-                                                >
-                                                <button
-                                                    class="field-toggle"
-                                                    type="button"
-                                                    data-password-toggle
-                                                    data-target="password_confirmation"
-                                                    aria-label="Показать пароль"
-                                                >
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <button class="submit-btn" type="submit">Создать аккаунт</button>
-                                    </form>
-
-                                    <div class="divider">или зарегистрироваться через</div>
-
-                                    <div class="social-grid">
-                                        <a class="social-btn" href="{{ route('social.redirect', ['provider' => 'google']) }}">
-                                            <i class="bi bi-google"></i>
-                                            <span>Google</span>
-                                        </a>
-                                        <a class="social-btn" href="{{ route('social.redirect', ['provider' => 'github']) }}">
-                                            <i class="bi bi-github"></i>
-                                            <span>GitHub</span>
-                                        </a>
-                                    </div>
-
-                                    <p class="auth-footer mb-0">
-                                        Уже есть аккаунт?
-                                        <a href="{{ route('login') }}">Войти</a>
-                                    </p>
+                    <div class="info-body">
+                        <h1 class="info-title">Удобное бронирование начинается здесь</h1>
+                        
+                        <div class="step-list">
+                            <div class="step-item">
+                                <div class="step-icon"><i class="bi bi-1-circle"></i></div>
+                                <div class="step-text">
+                                    <h4>Создайте аккаунт</h4>
+                                    <p>Это займет не более 30 секунд. Все данные надежно защищены.</p>
+                                </div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-icon"><i class="bi bi-2-circle"></i></div>
+                                <div class="step-text">
+                                    <h4>Настройте профиль</h4>
+                                    <p>Добавьте свои данные или информацию о вашем бизнесе.</p>
+                                </div>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-icon"><i class="bi bi-3-circle"></i></div>
+                                <div class="step-text">
+                                    <h4>Начните работу</h4>
+                                    <p>Бронируйте услуги или принимайте заказы от клиентов в один клик.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <div class="info-footer">
+                        <span>© {{ date('Y') }} BroNix. Платформа для вашего роста.</span>
+                    </div>
                 </div>
             </div>
+
         </div>
     </div>
-</section>
+
+</div>
 
 <script src="{{ asset('assets/public/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script>
+    // Переключение видимости пароля
     document.querySelectorAll('[data-password-toggle]').forEach((button) => {
         button.addEventListener('click', () => {
             const input = document.getElementById(button.dataset.target);
-
-            if (!input) {
-                return;
-            }
+            if (!input) return;
 
             const isPassword = input.type === 'password';
             input.type = isPassword ? 'text' : 'password';
 
             const icon = button.querySelector('i');
-
             if (icon) {
                 icon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
             }
