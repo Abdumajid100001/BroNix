@@ -9,6 +9,16 @@ use App\Models\Booking;
 
 class BookingController extends Controller
 {
+    public function getBookedSlots(Request $request) 
+{
+    $bookedSlots = Booking::where('business_id', $request->business_id)
+        ->where('booking_date', $request->date)
+        ->where('status', '!=', 'cancelled')
+        ->pluck('start_time')
+        ->toArray();
+
+    return response()->json(['booked_slots' => $bookedSlots]);
+}
     public function index(Request $request)
     {
         // 1. Категории для левой панели вытаскиваем ВСЕГДА
@@ -52,6 +62,10 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
+        // В контроллере
+if ($request->booking_date == date('Y-m-d') && $request->start_time < date('H:i')) {
+    return back()->withErrors(['time' => 'Вы выбрали прошедшее время']);
+}
         $request->validate([
             'business_id'  => 'required|exists:businesses,id',
             'service_id'   => 'required|exists:services,id',
@@ -76,4 +90,5 @@ class BookingController extends Controller
         // к списку броней, либо на страницу оплаты, но оставляем на твое усмотрение:
         return redirect()->back()->with('success', 'Бронирование успешно создано!');
     }
+    
 }

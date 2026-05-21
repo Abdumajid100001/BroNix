@@ -17,8 +17,13 @@ use App\Http\Controllers\WalletController;
 use App\Models\Booking;
 use App\Models\Business;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\PollController;
 
-
+Route::get('/vote/{token}', [PollController::class, 'show'])->name('poll.show');
+Route::post('/vote/{token}', [PollController::class, 'cast'])->name('poll.cast');
+Route::get('/api/booked-slots', [BookingController::class, 'getBookedSlots']);
+// Проверка доступности времени (AJAX)
+Route::get('/booking/check-availability', [BookingController::class, 'checkAvailability'])->name('booking.check');
 // Маршрут для переключения языков
 Route::get('lang/{lang}', function ($lang) {
     if (in_array($lang, ['en', 'ru', 'tj'])) {
@@ -99,10 +104,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
     Route::get('/booking/{booking}/payment', [BookingController::class, 'payment'])->name('booking.payment');
 
-    // Кошелек и Карты
-    Route::get('/wallet', function () { return view('public.wallet'); })->name('wallet');
-    Route::post('/cards', [CardController::class, 'store'])->name('cards.store');
-
+   
     // Общий редирект на нужную панель в зависимости от роли
     Route::get('/dashboard', DashboardRedirectController::class)->name('dashboard');
 

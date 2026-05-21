@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Owner;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Business; // Добавьте этот импорт!
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
@@ -17,19 +18,22 @@ class DashboardController extends Controller
     public function index(): View
     {
         $user = auth()->user();
-        $businessIds = $user->businesses()->pluck('id');
+        
+        // Получаем все бизнесы пользователя
+        $businesses = Business::where('user_id', $user->id)->get();
+        $businessIds = $businesses->pluck('id');
 
         // 1. Статистика бронирований
         $stats = [
             'total_bookings'   => Booking::whereIn('business_id', $businessIds)->count(),
             'pending_bookings' => Booking::whereIn('business_id', $businessIds)->where('status', 'pending')->count(),
             'confirmed_today'  => Booking::whereIn('business_id', $businessIds)
-                                    ->whereDate('booking_date', Carbon::today())
-                                    ->where('status', 'confirmed')
-                                    ->count(),
+                                        ->whereDate('booking_date', Carbon::today())
+                                        ->where('status', 'confirmed')
+                                        ->count(),
         ];
 
-        // 2. Сбор данных для графика (Записи по дням недели за текущий месяц)
+        // 2. Сбор данных для графика
         $daysOfWeekBookings = Booking::whereIn('business_id', $businessIds)
             ->whereMonth('booking_date', Carbon::now()->month)
             ->select(DB::raw('DAYOFWEEK(booking_date) as day_num'), DB::raw('count(*) as total'))
@@ -38,13 +42,13 @@ class DashboardController extends Controller
             ->toArray();
 
         $chartData = [
-            $daysOfWeekBookings[2] ?? 0, // Понедельник
-            $daysOfWeekBookings[3] ?? 0, // Вторник
-            $daysOfWeekBookings[4] ?? 0, // Среда
-            $daysOfWeekBookings[5] ?? 0, // Четверг
-            $daysOfWeekBookings[6] ?? 0, // Пятница
-            $daysOfWeekBookings[7] ?? 0, // Суббота
-            $daysOfWeekBookings[1] ?? 0, // Воскресенье
+            $daysOfWeekBookings[2] ?? 0, // Пн
+            $daysOfWeekBookings[3] ?? 0, // Вт
+            $daysOfWeekBookings[4] ?? 0, // Ср
+            $daysOfWeekBookings[5] ?? 0, // Чт
+            $daysOfWeekBookings[6] ?? 0, // Пт
+            $daysOfWeekBookings[7] ?? 0, // Сб
+            $daysOfWeekBookings[1] ?? 0, // Вс
         ];
         $chartLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
@@ -70,7 +74,16 @@ class DashboardController extends Controller
             ->take(4)
             ->get();
 
-        return view('owner.dashboard', compact('user', 'stats', 'chartLabels', 'chartData', 'topServices', 'recentBookings'));
+        // Передаем переменную $businesses в compact
+        return view('owner.dashboard', compact(
+            'user', 
+            'businesses', // <- ВАЖНО: передаем эту переменную
+            'stats', 
+            'chartLabels', 
+            'chartData', 
+            'topServices', 
+            'recentBookings'
+        ));
     }
 
     /**
@@ -87,7 +100,6 @@ class DashboardController extends Controller
             return response()->json(['error' => 'Неверный формат даты'], 400);
         }
 
-        // Фильтруем только бронирования заведений текущего владельца
         $bookings = Booking::with(['service', 'user'])
             ->whereIn('business_id', $businessIds)
             ->whereDate('booking_date', $formattedDate) 
@@ -108,63 +120,45 @@ class DashboardController extends Controller
     }
 
     /**
-     * AJAX-метод: Подтвердить бронирование владельцем.
+     * AJAX-метод: Подтвердить бронирование.
      */
     public function confirmBooking($id): JsonResponse
     {
         $user = auth()->user();
         $businessIds = $user->businesses()->pluck('id');
-
-        // Ищем бронь, принадлежащую заведениям текущего владельца
         $booking = Booking::whereIn('business_id', $businessIds)->find($id);
 
         if (!$booking) {
-            return response()->json(['success' => false, 'message' => 'Бронирование не найдено или доступ запрещен'], 404);
-        }
-
-        if ($booking->status === 'confirmed') {
-            return response()->json(['success' => true, 'message' => 'Уже подтверждено ранее']);
+            return response()->json(['success' => false, 'message' => 'Не найдено'], 404);
         }
 
         $booking->status = 'confirmed';
         $booking->save();
 
-        return response()->json([
-            'success' => true, 
-            'message' => 'Бронирование успешно подтверждено!'
-        ]);
+        return response()->json(['success' => true]);
     }
 
     /**
-     * AJAX-метод: Отменить бронирование владельцем.
+     * AJAX-метод: Отменить бронирование.
      */
     public function cancelBooking($id): JsonResponse
     {
         $user = auth()->user();
         $businessIds = $user->businesses()->pluck('id');
-
-        // Ищем бронь, принадлежащую заведениям текущего владельца
         $booking = Booking::whereIn('business_id', $businessIds)->find($id);
 
         if (!$booking) {
-            return response()->json(['success' => false, 'message' => 'Бронирование не найдено или доступ запрещен'], 404);
-        }
-
-        if ($booking->status === 'cancelled') {
-            return response()->json(['success' => true, 'message' => 'Уже отменено ранее']);
+            return response()->json(['success' => false, 'message' => 'Не найдено'], 404);
         }
 
         $booking->status = 'cancelled';
         $booking->save();
 
-        return response()->json([
-            'success' => true, 
-            'message' => 'Бронирование успешно отменено!'
-        ]);
+        return response()->json(['success' => true]);
     }
 
     /**
-     * AJAX-метод: Получить массив дат текущего месяца, на которые есть записи.
+     * AJAX-метод: Получить массив дат для календаря.
      */
     public function monthBookings($year_month): JsonResponse
     {
@@ -175,15 +169,13 @@ class DashboardController extends Controller
             $startOfMonth = Carbon::parse($year_month . '-01')->startOfMonth()->format('Y-m-d');
             $endOfMonth = Carbon::parse($year_month . '-01')->endOfMonth()->format('Y-m-d');
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Неверный формат месяца'], 400);
+            return response()->json(['error' => 'Неверный формат'], 400);
         }
 
         $bookedDates = Booking::whereIn('business_id', $businessIds)
             ->whereBetween('booking_date', [$startOfMonth, $endOfMonth])
             ->pluck('booking_date') 
-            ->map(function($date) {
-                return Carbon::parse($date)->format('Y-m-d');
-            })
+            ->map(fn($date) => Carbon::parse($date)->format('Y-m-d'))
             ->unique()
             ->values();
 

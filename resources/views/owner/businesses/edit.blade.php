@@ -1,116 +1,97 @@
 @extends('owner.layouts.app')
 
-@section('title', __('Редактировать бизнес'))
-@section('page_title', __('Редактировать бизнес'))
-
 @section('content')
+<div class="container-fluid px-0">
     <div class="card border-0 shadow-sm rounded-4 mx-auto" style="max-width:920px;">
         <div class="card-body p-4">
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <strong>{{ __('Ошибка!') }}</strong>
-                    <ul class="mb-0 mt-2">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
+            <h4 class="fw-bold mb-4">Редактирование бизнеса: {{ $business->name }}</h4>
+            
             <form method="POST" action="{{ route('owner.businesses.update', $business) }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
+                {{-- Скрытые поля для координат --}}
+                <input type="hidden" name="latitude" id="lat" value="{{ old('latitude', $business->latitude) }}">
+                <input type="hidden" name="longitude" id="lng" value="{{ old('longitude', $business->longitude) }}">
+
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
-                        <label class="form-label">{{ __('Название') }}</label>
-                        <input name="name" value="{{ old('name', $business->name) }}" class="form-control" placeholder="{{ __('Название') }}">
+                        <label class="form-label">Название</label>
+                        <input name="name" value="{{ old('name', $business->name) }}" class="form-control" required>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">{{ __('Телефон') }}</label>
-                        <input name="phone" value="{{ old('phone', $business->phone) }}" class="form-control" placeholder="{{ __('Телефон') }}">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">{{ __('Описание') }}</label>
-                        <textarea name="description" rows="3" class="form-control" placeholder="{{ __('Описание') }}">{{ old('description', $business->description) }}</textarea>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">{{ __('Адрес') }}</label>
-                        <input name="address" value="{{ old('address', $business->address) }}" class="form-control" placeholder="{{ __('Адрес') }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">{{ __('Категория') }}</label>
-                        <select name="businesses_type_id" class="form-select">
-                            <option value="">{{ __('Выберите категорию') }}</option>
+                        <label class="form-label">Категория</label>
+                        <select name="business_type_id" class="form-select">
                             @foreach($types as $type)
-                                <option value="{{ $type->id }}" @selected(old('businesses_type_id', $business->businesses_type_id) == $type->id)>{{ $type->name }}</option>
+                                <option value="{{ $type->id }}" @selected(old('business_type_id', $business->business_type_id) == $type->id)>{{ $type->name }}</option>
                             @endforeach
                         </select>
                     </div>
+                    <div class="col-12">
+                        <label class="form-label">Адрес</label>
+                        <input name="address" value="{{ old('address', $business->address) }}" class="form-control" id="addressInput">
+                    </div>
+                    
+                    {{-- Карта выбора локации --}}
+                    <div class="col-12">
+                        <div id="map" style="height: 300px; border-radius: 1rem;" class="border"></div>
+                    </div>
                 </div>
 
-                @php
-                    $serviceRows = old('services', $business->services->map(fn ($service) => ['id' => $service->id, 'name' => $service->name, 'price' => $service->price, 'duration' => $service->duration])->toArray());
-                    if (count($serviceRows) < 3) {
-                        $serviceRows = array_pad($serviceRows, 3, ['id' => null, 'name' => '', 'price' => '', 'duration' => '']);
-                    }
-                    $days = ['Monday' => __('Понедельник'), 'Tuesday' => __('Вторник'), 'Wednesday' => __('Среда'), 'Thursday' => __('Четверг'), 'Friday' => __('Пятница'), 'Saturday' => __('Суббота'), 'Sunday' => __('Воскресенье')];
-                    $schedulesByDay = $business->schedules->keyBy('day_of_week');
-                @endphp
-
-                <div class="border rounded-4 p-3 p-md-4 mb-4 bg-light-subtle">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0">{{ __('Услуги бизнеса') }}</h5>
-                        <small class="text-muted">{{ __('Обновите услуги') }}</small>
-                    </div>
-                    @foreach($serviceRows as $index => $service)
-                        <div class="row g-2 align-items-end mb-3">
-                            <input type="hidden" name="services[{{ $index }}][id]" value="{{ $service['id'] ?? '' }}">
-                            <div class="col-md-5"><input type="text" name="services[{{ $index }}][name]" value="{{ $service['name'] ?? '' }}" class="form-control" placeholder="{{ __('Название услуги') }}"></div>
-                            <div class="col-md-3"><input type="number" step="0.01" min="0" name="services[{{ $index }}][price]" value="{{ $service['price'] ?? '' }}" class="form-control" placeholder="{{ __('Цена') }}"></div>
-                            <div class="col-md-4"><input type="text" name="services[{{ $index }}][duration]" value="{{ $service['duration'] ?? '' }}" class="form-control" placeholder="{{ __('Длительность') }}"></div>
+                {{-- Секция услуг (как в Create) --}}
+                <div class="border rounded-4 p-3 mb-4 bg-light">
+                    <h5 class="fw-bold mb-3">Услуги</h5>
+                    @foreach($business->services as $index => $service)
+                        <div class="row g-2 mb-2">
+                            <input type="hidden" name="services[{{ $index }}][id]" value="{{ $service->id }}">
+                            <div class="col-md-5"><input name="services[{{ $index }}][name]" value="{{ $service->name }}" class="form-control" placeholder="Название услуги"></div>
+                            <div class="col-md-3"><input name="services[{{ $index }}][price]" value="{{ $service->price }}" class="form-control" placeholder="Цена"></div>
+                            <div class="col-md-4"><input name="services[{{ $index }}][duration]" value="{{ $service->duration }}" class="form-control" placeholder="Время"></div>
                         </div>
                     @endforeach
                 </div>
 
-                <div class="border rounded-4 p-3 p-md-4 mb-4 bg-light-subtle">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0">{{ __('График работы') }}</h5>
-                        <small class="text-muted">{{ __('Укажите часы или отметьте выходной') }}</small>
-                    </div>
-                    @foreach($days as $key => $day)
-                        @php $row = $schedulesByDay->get($key); @endphp
-                        <div class="row align-items-center py-2 border-bottom schedule-row">
-                            <div class="col-md-3 fw-semibold">{{ $day }}</div>
-                            <div class="col-md-3"><input type="time" name="schedule[{{ $key }}][start]" value="{{ old('schedule.' . $key . '.start', $row?->start_time ? \Illuminate\Support\Str::substr($row->start_time, 0, 5) : null) }}" class="form-control form-control-sm start-time"></div>
-                            <div class="col-md-3"><input type="time" name="schedule[{{ $key }}][end]" value="{{ old('schedule.' . $key . '.end', $row?->end_time ? \Illuminate\Support\Str::substr($row->end_time, 0, 5) : null) }}" class="form-control form-control-sm end-time"></div>
-                            <div class="col-md-3 text-end">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input day-off" type="checkbox" name="schedule[{{ $key }}][day_off]" id="off_{{ $key }}" value="1" @checked(old('schedule.' . $key . '.day_off', $row?->is_day_off))>
-                                    <label class="form-check-label text-muted" for="off_{{ $key }}">{{ __('Выходной') }}</label>
-                                </div>
+                {{-- Секция графика (как в Create) --}}
+                <div class="border rounded-4 p-3 mb-4 bg-light">
+                    <h5 class="fw-bold mb-3">График работы</h5>
+                    @foreach(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $day)
+                        @php $sched = $business->schedules->where('day_of_week', $day)->first(); @endphp
+                        <div class="row align-items-center py-1">
+                            <div class="col-md-3">{{ $day }}</div>
+                            <div class="col-md-3"><input type="time" name="schedule[{{ $day }}][start]" value="{{ $sched ? substr($sched->start_time, 0, 5) : '' }}" class="form-control"></div>
+                            <div class="col-md-3"><input type="time" name="schedule[{{ $day }}][end]" value="{{ $sched ? substr($sched->end_time, 0, 5) : '' }}" class="form-control"></div>
+                            <div class="col-md-3">
+                                <input type="checkbox" name="schedule[{{ $day }}][day_off]" value="1" @checked($sched?->is_day_off)> Выходной
                             </div>
                         </div>
                     @endforeach
                 </div>
 
-                <div class="row g-3 align-items-end mb-2">
-                    <div class="col-md-8">
-                        <label class="form-label">{{ __('Фото') }}</label>
-                        <input type="file" name="image" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        @if($business->image)
-                            <img src="{{ asset('storage/' . $business->image) }}" class="rounded shadow-sm w-100" style="height:90px; object-fit:cover;" alt="{{ $business->name }}">
-                        @endif
-                    </div>
-                </div>
-
-                <div class="d-flex flex-wrap gap-2 mt-4">
-                    <button class="btn btn-warning text-white px-4">{{ __('Сохранить изменения') }}</button>
-                    <a href="{{ route('owner.businesses.show', $business) }}" class="btn btn-outline-primary">{{ __('Открыть карточку') }}</a>
-                </div>
+                <button type="submit" class="btn btn-primary w-100 py-3 shadow">Сохранить изменения</button>
             </form>
         </div>
     </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var map = L.map('map').setView([{{ $business->latitude ?? 40.2735 }}, {{ $business->longitude ?? 69.6392 }}], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+        var marker = L.marker([{{ $business->latitude ?? 40.2735 }}, {{ $business->longitude ?? 69.6392 }}], {draggable: true}).addTo(map);
+
+        map.on('click', function(e) {
+            marker.setLatLng(e.latlng);
+            document.getElementById('lat').value = e.latlng.lat;
+            document.getElementById('lng').value = e.latlng.lng;
+        });
+
+        marker.on('dragend', function() {
+            document.getElementById('lat').value = marker.getLatLng().lat;
+            document.getElementById('lng').value = marker.getLatLng().lng;
+        });
+    });
+</script>
 @endsection

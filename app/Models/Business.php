@@ -10,9 +10,17 @@ class Business extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id','business_type_id','name','description','address','phone','day_of_week','image','start_time','end_time'
-    ];
-
+    'user_id',
+    'business_type_id',
+    'name',
+    'description',
+    'address',
+    'phone',
+    'latitude',  // ДОБАВИТЬ ЭТО
+    'longitude', // ДОБАВИТЬ ЭТО
+    'image',
+    // остальные поля...
+];
     public function type()
     {
         return $this->belongsTo(BusinessType::class, 'business_type_id');

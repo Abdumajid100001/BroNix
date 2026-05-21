@@ -19,6 +19,8 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('address')->nullable();
             $table->string('phone')->nullable();
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
             $table->enum('status', ['pending ', 'confirmed ','rejected '])->default('pending ');
             $table->timestamps();
         });

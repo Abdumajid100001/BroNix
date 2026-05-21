@@ -39,10 +39,7 @@
                         <textarea name="description" class="form-control rounded-3" rows="3" placeholder="Расскажите о вашем бизнесе...">{{ old('description') }}</textarea>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold text-muted">Точный адрес</label>
-                        <input name="address" class="form-control py-2.5 rounded-3" placeholder="ул. Рудаки, дом 15" value="{{ old('address') }}" required>
-                    </div>
+                
 
                     <div class="col-md-6">
                         <label class="form-label small fw-semibold text-muted">Категория бизнеса</label>
@@ -174,9 +171,49 @@
                     <input type="file" name="image" class="form-control rounded-3 py-2">
                     <small class="text-muted">Поддерживаются форматы: JPEG, PNG, JPG, WEBP. До 2 МБ.</small>
                 </div>
+                {{-- Вставьте этот блок там, где у вас адрес --}}
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <label class="form-label small fw-semibold text-muted">Точный адрес</label>
+        <input name="address" class="form-control py-2.5 rounded-3" placeholder="ул. Рудаки, дом 15" value="{{ old('address') }}" required>
+    </div>
+<div class="col-12 mt-3">
+    <label class="form-label small fw-semibold text-muted">Укажите место на карте (Худжанд)</label>
+    <div id="map" style="height: 300px; border-radius: 15px; border: 1px solid #ddd;"></div>
+    <div class="row g-2 mt-2">
+        <div class="col-6">
+            <input type="text" name="latitude" id="lat" class="form-control" placeholder="Широта" required>
+        </div>
+        <div class="col-6">
+            <input type="text" name="longitude" id="lng" class="form-control" placeholder="Долгота" required>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var map = L.map('map').setView([40.2735, 69.6392], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        var marker;
+
+        map.on('click', function(e) {
+            if (marker) map.removeLayer(marker);
+            marker = L.marker(e.latlng).addTo(map);
+
+            // Записываем координаты с фиксацией 6 знаков
+            document.getElementById('lat').value = e.latlng.lat.toFixed(6);
+            document.getElementById('lng').value = e.latlng.lng.toFixed(6);
+        });
+    });
+</script>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 
                 <button type="submit" class="btn btn-primary w-100 py-3 rounded-3 fw-bold shadow-sm transition-all" style="font-size: 16px;">
-                    ✨ Создать и сохранить бизнес
+                     Создать бизнес
                 </button>
             </form>
         </div>

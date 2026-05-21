@@ -10,7 +10,7 @@
             request()->routeIs('owner.businesses.create') => __('Добавить бизнес'),
             request()->routeIs('owner.businesses.edit') => __('Редактировать бизнес'),
             request()->routeIs('owner.businesses.show') => __('Карточка бизнеса'),
-            default => __('Панель владельца'),
+            
         };
         $pageTitle = trim($__env->yieldContent('title', $ownerTitle));
     @endphp
@@ -27,8 +27,8 @@
 
     <script>
         (function () {
-            const savedTheme = localStorage.getItem('bronix-theme') || 'light';
-            document.documentElement.setAttribute('data-bs-theme', savedTheme);
+            // Фиксируем всегда светлую тему, так как переключатель удален
+            document.documentElement.setAttribute('data-bs-theme', 'light');
         })();
     </script>
 </head>
@@ -55,46 +55,11 @@
 
                 <ul class="list-unstyled topnav-menu mb-0 d-flex align-items-center gap-2">
                     
-                    <li class="dropdown">
-                        <a class="nav-link dropdown-toggle btn btn-light btn-sm d-flex align-items-center gap-1 px-2 py-1.5 rounded-3 border-0" data-bs-toggle="dropdown" href="#" role="button">
-                            <i data-feather="globe" class="icon-sm"></i>
-                            <span class="text-uppercase fw-bold fs-13">{{ app()->getLocale() }}</span>
-                            <i class="mdi mdi-chevron-down fs-14"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
-                            <a href="{{ route('lang.switch', 'ru') }}" class="dropdown-item d-flex align-items-center justify-content-between py-2 {{ app()->getLocale() == 'ru' ? 'active' : '' }}">
-                                <span>Русский</span>
-                                <span class="badge bg-light text-dark border fs-10">RU</span>
-                            </a>
-                            <a href="{{ route('lang.switch', 'en') }}" class="dropdown-item d-flex align-items-center justify-content-between py-2 {{ app()->getLocale() == 'en' ? 'active' : '' }}">
-                                <span>English</span>
-                                <span class="badge bg-light text-dark border fs-10">EN</span>
-                            </a>
-                            <a href="{{ route('lang.switch', 'tj') }}" class="dropdown-item d-flex align-items-center justify-content-between py-2 {{ app()->getLocale() == 'tj' ? 'active' : '' }}">
-                                <span>Тоҷикӣ</span>
-                                <span class="badge bg-light text-dark border fs-10">TJ</span>
-                            </a>
-                        </div>
-                    </li>
-
-                    <li>
-                        <button id="theme-toggle-btn" class="btn btn-light btn-sm p-2 rounded-circle border-0 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                            <i id="theme-toggle-icon" data-feather="moon" class="icon-sm"></i>
-                        </button>
-                    </li>
-
-                    <div class="vr mx-1 my-2 text-muted opacity-25" style="height: 24px;"></div>
-
                     <li class="dropdown notification-list">
                         <a class="nav-link dropdown-toggle nav-user me-0 d-flex align-items-center py-2" data-bs-toggle="dropdown" href="#" role="button">
-                            <div class="avatar-sm d-inline-block me-1">
-                                <span class="avatar-title bg-soft-primary text-primary rounded-circle fw-bold fs-13">
-                                    {{ mb_substr(auth()->user()->name ?? 'U', 0, 1) }}
-                                </span>
-                            </div>
-                            <span class="pro-user-name ms-1 d-none d-sm-inline-block text-body fw-medium">
+                            <span class="pro-user-name d-inline-block text-body fw-medium">
                                 {{ auth()->user()->name ?? __('Пользователь') }} 
-                                <i class="mdi mdi-chevron-down opacity-70"></i>
+                                <i class="mdi mdi-chevron-down opacity-70 ms-1"></i>
                             </span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end profile-dropdown shadow-sm border-0 rounded-3">
@@ -135,10 +100,10 @@
             </div>
         </div>
 
-        <footer class="footer border-top bg-body">
+       <footer class="footer bg-body">
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col fs-13 text-muted text-center py-3">
+                    <div class="col text-muted text-center py-2" style="font-size: 12px; opacity: 0.7;">
                         &copy; <script>document.write(new Date().getFullYear())</script> BroNix — Сделано со вкусом
                     </div>
                 </div>
@@ -232,36 +197,9 @@
 <script src="{{ asset('assets/admin/js/app.js') }}"></script>
 
 <script>
+    // Скрипт переключения темы удален, так как элементы интерфейса отсутствуют.
     document.addEventListener('DOMContentLoaded', function() {
-        const themeToggleBtn = document.getElementById('theme-toggle-btn');
-        const themeToggleIcon = document.getElementById('theme-toggle-icon');
-        const body = document.body;
-
-        function applyTheme(theme) {
-            document.documentElement.setAttribute('data-bs-theme', theme);
-            localStorage.setItem('bronix-theme', theme);
-            
-            if (theme === 'dark') {
-                body.setAttribute('data-menu-color', 'dark');
-                body.setAttribute('data-sidebar', 'dark');
-                themeToggleIcon.setAttribute('data-feather', 'sun');
-            } else {
-                body.setAttribute('data-menu-color', 'light');
-                body.setAttribute('data-sidebar', 'default');
-                themeToggleIcon.setAttribute('data-feather', 'moon');
-            }
-            // Переинициализируем feather-иконку при замене атрибута
-            if (typeof feather !== 'undefined') feather.replace();
-        }
-
-        // Текущая тема из localStorage или по умолчанию light
-        let currentTheme = localStorage.getItem('bronix-theme') || 'light';
-        applyTheme(currentTheme);
-
-        themeToggleBtn.addEventListener('click', function() {
-            currentTheme = (currentTheme === 'light') ? 'dark' : 'light';
-            applyTheme(currentTheme);
-        });
+        if (typeof feather !== 'undefined') feather.replace();
     });
 </script>
 

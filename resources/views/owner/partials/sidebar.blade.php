@@ -1,3 +1,43 @@
+<style>
+    /* Основные стили меню */
+    #sidebar-menu { padding: 0 15px; }
+    
+    #side-menu li { margin-bottom: 4px; }
+    
+    #side-menu li a {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px !important;
+        border-radius: 12px !important;
+        color: #64748b !important;
+        transition: all 0.3s ease !important;
+        font-weight: 500;
+    }
+
+    #side-menu li a i { margin-right: 12px; width: 18px; height: 18px; }
+
+    /* Активное состояние */
+    #side-menu li a.active {
+        background: #0d6efd !important; /* Цвет вашей кнопки */
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    }
+
+    /* Эффект наведения */
+    #side-menu li a:hover:not(.active) {
+        background: #f1f5f9;
+        color: #1e293b !important;
+    }
+
+    /* Заголовок меню */
+    .menu-title {
+        padding: 20px 10px 10px 10px !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8 !important;
+    }
+</style>
 <div class="app-sidebar-menu">
     <div class="h-100" data-simplebar>
         <div id="sidebar-menu">

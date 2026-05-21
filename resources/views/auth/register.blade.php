@@ -486,6 +486,17 @@
                                 </button>
                             </div>
                         </div>
+                        <!-- НОВОЕ: Поле Подтверждение пароля -->
+<div class="input-group-custom">
+    <label for="password_confirmation">Подтверждение пароля</label>
+    <div class="input-wrapper">
+        <i class="bi bi-shield-check input-icon"></i>
+        <input type="password" id="password_confirmation" name="password_confirmation" required placeholder="••••••••">
+        <button class="password-toggle" type="button" data-password-toggle data-target="password_confirmation" aria-label="Показать пароль">
+            <i class="bi bi-eye"></i>
+        </button>
+    </div>
+</div>
 
                         <button class="btn-submit" type="submit">Зарегистрироваться</button>
                     </form>
