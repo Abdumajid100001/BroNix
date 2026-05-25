@@ -23,7 +23,6 @@ class BusinessesController extends Controller
 
     public function create(Request $request)
     {
-        // 🔒 только business роль
         if (!auth()->user()->hasAnyRole(['admin', 'owner', 'business'])) {
             abort(403);
         }
@@ -34,7 +33,6 @@ class BusinessesController extends Controller
 
     public function store(Request $request)
     {
-        // 🔒 только business роль
         if (!auth()->user()->hasAnyRole(['admin', 'owner', 'business'])) {
             abort(403);
         }
@@ -157,7 +155,6 @@ class BusinessesController extends Controller
         return view('admin.businesses.show', compact('business'));
     }
 
-    // ❗ ВСЁ НИЖЕ — ТВОЙ КОД БЕЗ ИЗМЕНЕНИЙ
 
     private function storeScheduleRow(int $businessId, string $day, array $scheduleData): void
     {

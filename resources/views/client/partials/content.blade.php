@@ -1,11 +1,7 @@
-﻿<!-- ============================================================== -->
-<!-- Start Page Content here -->
-<!-- ============================================================== -->
-
+﻿
 <div class="content-page">
     <div class="content">
 
-        <!-- Start Content-->
         <div class="container-fluid">
             <div class="py-3 d-flex align-items-sm-center flex-sm-row flex-column">
                 <div class="flex-grow-1">
@@ -15,10 +11,10 @@
                 </div>
             </div>
 
-        </div> <!-- container-fluid -->
-    </div> <!-- content -->
+        </div> 
+    </div> 
 
-    <!-- Footer Start -->
+  
     <footer class="footer">
         <div class="container-fluid">
             <div class="row">
@@ -28,9 +24,6 @@
             </div>
         </div>
     </footer>
-    <!-- end Footer -->
+   
 
 </div>
-<!-- ============================================================== -->
-<!-- End Page content -->
-<!-- ============================================================== -->

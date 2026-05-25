@@ -321,15 +321,9 @@
         const message = input.value.trim();
 
         if (!message) return;
-
-        // Добавить сообщение пользователя в UI
         addMessage(message, 'user');
         input.value = '';
-
-        // Показать индикатор печатания
         showTypingIndicator();
-
-        // Отправить на сервер
         fetch('{{ route("assistant.message") }}', {
             method: 'POST',
             headers: {
@@ -344,18 +338,14 @@
         .then(response => response.json())
         .then(data => {
             removeTypingIndicator();
-
-            // Добавить ответ ассистента
             addMessage(data.message, 'assistant');
 
-            // Если есть результаты, показать карточки бизнесов
             if (data.businesses && data.businesses.length > 0) {
                 data.businesses.forEach(business => {
                     addBusinessCard(business);
                 });
             }
 
-            // Сохранить в историю
             messageHistory.push(
                 { role: 'user', content: message },
                 { role: 'assistant', content: data.message }
@@ -376,7 +366,6 @@
     function addMessage(content, role) {
         const messagesDiv = document.getElementById('chatMessages');
 
-        // Очистить приветствие при первом сообщении
         if (messagesDiv.querySelector('.chat-welcome')) {
             messagesDiv.innerHTML = '';
         }
@@ -392,7 +381,6 @@
         messageDiv.appendChild(contentDiv);
         messagesDiv.appendChild(messageDiv);
 
-        // Автоскролл вниз
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
@@ -407,9 +395,9 @@
                 <div class="business-rating">⭐ ${business.rating}</div>
             </div>
             <div class="business-meta">
-                <div>📍 ${business.address || 'Адрес не указан'}</div>
-                <div>💰 от ${business.min_price ? new Intl.NumberFormat('ru-RU').format(business.min_price) + ' UZS' : 'по запросу'}</div>
-                <div>📊 ${business.bookings_count} бронирований</div>
+                <div> ${business.address || 'Адрес не указан'}</div>
+                <div> от ${business.min_price ? new Intl.NumberFormat('ru-RU').format(business.min_price) + ' UZS' : 'по запросу'}</div>
+                <div> ${business.bookings_count} бронирований</div>
                 <div>🔧 ${business.services_count} услуг</div>
             </div>
             <div class="business-action">

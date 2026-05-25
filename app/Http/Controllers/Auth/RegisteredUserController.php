@@ -35,15 +35,12 @@ class RegisteredUserController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'account_type' => ['required', 'in:user,owner'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'logo' => ['nullable', 'string', 'max:255'],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'account_type' => $request->account_type,
-            'logo' => $request->input('logo', null),
         ]);
 
         $user->assignPanelRole((string) $request->input('account_type', 'user'));

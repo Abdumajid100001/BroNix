@@ -9,19 +9,9 @@ use App\Models\Booking;
 
 class BookingController extends Controller
 {
-    public function getBookedSlots(Request $request) 
-{
-    $bookedSlots = Booking::where('business_id', $request->business_id)
-        ->where('booking_date', $request->date)
-        ->where('status', '!=', 'cancelled')
-        ->pluck('start_time')
-        ->toArray();
-
-    return response()->json(['booked_slots' => $bookedSlots]);
-}
     public function index(Request $request)
     {
-        // 1. Категории для левой панели вытаскиваем ВСЕГДА
+     
         $types = BusinessType::withCount('businesses')->get();
 
         $selectedType = $request->query('type_id');
@@ -30,20 +20,14 @@ class BookingController extends Controller
         $businesses = collect();
         $business = null;
 
-        // 2. Логика для выбранного конкретного БИЗНЕСА (Шаг 3)
         if ($selectedBusiness) {
             $business = Business::with(['services', 'schedules', 'type'])
                 ->findOrFail($selectedBusiness);
 
-            // 🔥 ВОТ ОНО ИСПРАВЛЕНИЕ: Если type_id не передан в URL, но выбран бизнес, 
-            // мы берём type_id прямо из этого бизнеса! Так левая колонка никогда не сломается.
             if (!$selectedType) {
                 $selectedType = $business->business_type_id;
             }
         }
-
-        // 3. БИЗНЕСЫ ПО КАТЕГОРИИ (Шаг 2)
-        // Теперь это сработает и при прямом клике на категорию, и при открытом бизнесе
         if ($selectedType) {
             $businesses = Business::with(['services', 'schedules', 'type'])
                 ->where('business_type_id', $selectedType)
@@ -62,10 +46,6 @@ class BookingController extends Controller
 
     public function store(Request $request)
     {
-        // В контроллере
-if ($request->booking_date == date('Y-m-d') && $request->start_time < date('H:i')) {
-    return back()->withErrors(['time' => 'Вы выбрали прошедшее время']);
-}
         $request->validate([
             'business_id'  => 'required|exists:businesses,id',
             'service_id'   => 'required|exists:services,id',
@@ -74,7 +54,6 @@ if ($request->booking_date == date('Y-m-d') && $request->start_time < date('H:i'
             'comment'      => 'nullable|string|max:1000',
         ]);
 
-        // Создаем бронирование
         Booking::create([
             'user_id'      => auth()->id(),
             'business_id'  => $request->business_id,
@@ -85,10 +64,6 @@ if ($request->booking_date == date('Y-m-d') && $request->start_time < date('H:i'
             'status'       => 'pending',
             'comment'      => $request->comment,
         ]);
-
-        // После успешного бронирования лучше редиректить пользователя в его личный кабинет 
-        // к списку броней, либо на страницу оплаты, но оставляем на твое усмотрение:
         return redirect()->back()->with('success', 'Бронирование успешно создано!');
     }
-    
 }

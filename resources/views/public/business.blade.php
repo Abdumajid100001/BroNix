@@ -124,7 +124,6 @@
                                     <div>📞 {{ $business->phone }}</div>
                                 </div>
 
-                                {{-- ГРАФИК --}}
                                 <div class="schedule-box mb-3">
                                     <div class="d-flex justify-content-between">
 <span class="status {{ $isOpen ? 'open':'closed' }}">
@@ -141,7 +140,7 @@
                                     </div>
                                 </div>
 
-                                {{-- УСЛУГИ ПОСЛЕ ГРАФИКА --}}
+                             
                                 @if($business->services->isNotEmpty())
                                     <div class="services-box mb-3">
                                         <div class="services-title">💼 Услуги</div>

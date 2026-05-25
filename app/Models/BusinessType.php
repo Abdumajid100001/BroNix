@@ -12,12 +12,9 @@ class BusinessType extends Model
         'color',
     ];
 
-    /**
-     * Связь «Один ко многим» с моделью Business
-     */
+    
     public function businesses()
     {
-        // Теперь здесь указано строгое и правильное имя колонки в базе данных
         return $this->hasMany(Business::class, 'business_type_id');
     }
 }

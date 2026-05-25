@@ -27,7 +27,7 @@
 
     <script>
         (function () {
-            // Фиксируем всегда светлую тему, так как переключатель удален
+        
             document.documentElement.setAttribute('data-bs-theme', 'light');
         })();
     </script>
@@ -197,7 +197,7 @@
 <script src="{{ asset('assets/admin/js/app.js') }}"></script>
 
 <script>
-    // Скрипт переключения темы удален, так как элементы интерфейса отсутствуют.
+
     document.addEventListener('DOMContentLoaded', function() {
         if (typeof feather !== 'undefined') feather.replace();
     });

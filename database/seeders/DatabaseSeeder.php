@@ -19,10 +19,11 @@ class DatabaseSeeder extends Seeder
 
         User::factory()->create([
             'name' => 'Ad',
-            'email' => 'admin1@gmail.com',
+            'email' => 'test@gmail.com',
         ]);
 
         $this->call(RolePermissionSeeder::class);
         $this->call(BusinessTypesSeeder::class);
+        
     }
 }

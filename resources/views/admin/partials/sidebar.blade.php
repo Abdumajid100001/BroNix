@@ -3,25 +3,26 @@
         [
             'label' => __('Бронирования'),
             'icon' => 'calendar',
-            'route' => route('admin.bookings.manage'),
+            // Используем Route::has для проверки существования роута
+            'route' => Route::has('admin.bookings.manage') ? route('admin.bookings.manage') : route('owner.bookings.index'),
             'active' => request()->routeIs('admin.bookings.*'),
         ],
         [
             'label' => __('Бизнесы'),
             'icon' => 'briefcase',
-            'route' => route('admin.businesses.index'),
+            'route' => Route::has('admin.businesses.index') ? route('admin.businesses.index') : '#',
             'active' => request()->routeIs('admin.businesses.*'),
         ],
         [
             'label' => __('Типы бизнесов'),
             'icon' => 'tag',
-            'route' => route('admin.businesses-types.index'),
+            'route' => Route::has('admin.businesses-types.index') ? route('admin.businesses-types.index') : '#',
             'active' => request()->routeIs('admin.businesses-types.*'),
         ],
         [
             'label' => __('Панель'),
             'icon' => 'grid',
-            'route' => route('admin.layouts.app'),
+            'route' => Route::has('admin.layouts.app') ? route('admin.layouts.app') : url('/admin'),
             'active' => request()->routeIs('admin.layouts.app'),
         ],
         [

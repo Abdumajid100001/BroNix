@@ -1,4 +1,4 @@
-<!-- ===== BOOKINGS SECTION ===== -->
+
             <div id="section-bookings" class="hidden fade-in">
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                     <div>

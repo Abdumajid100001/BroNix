@@ -1,5 +1,5 @@
 <style>
-    /* Основные стили меню */
+
     #sidebar-menu { padding: 0 15px; }
     
     #side-menu li { margin-bottom: 4px; }
@@ -16,20 +16,20 @@
 
     #side-menu li a i { margin-right: 12px; width: 18px; height: 18px; }
 
-    /* Активное состояние */
+    
     #side-menu li a.active {
-        background: #0d6efd !important; /* Цвет вашей кнопки */
+        background: #0d6efd !important; 
         color: #ffffff !important;
         box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
     }
 
-    /* Эффект наведения */
+    
     #side-menu li a:hover:not(.active) {
         background: #f1f5f9;
         color: #1e293b !important;
     }
 
-    /* Заголовок меню */
+    
     .menu-title {
         padding: 20px 10px 10px 10px !important;
         font-size: 0.75rem !important;

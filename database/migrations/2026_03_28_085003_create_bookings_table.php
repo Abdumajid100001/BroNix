@@ -17,12 +17,9 @@ return new class extends Migration
         $table->foreignId('business_id')->constrained('businesses');
         $table->foreignId('service_id')->constrained('services');
         $table->date('booking_date');
-
-        
-        // 👈 ДОБАВЛЯЕМ СТРОКИ ВРЕМЕНИ, КОТОРЫЕ ИЩЕТ ВАША ФОРМА БРОНИРОВАНИЯ
-        $table->string('start_time'); // Время начала (например, "18:00")
-        $table->string('end_time');   // Время окончания (например, "19:00")
-        
+        $table->integer('guests')->default(1); 
+        $table->string('start_time'); 
+        $table->string('end_time');   
         $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
         $table->timestamps();
     });

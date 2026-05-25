@@ -1,25 +1,18 @@
     @include('public.partials.header')
-
-    {{-- КОНТЕЙНЕР ДЛЯ УВЕДОМЛЕНИЙ --}}
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080; margin-top: 100px;">
-        @if(session('success'))
-            <div id="bookingToast" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
-                <div class="d-flex">
-                    <div class="toast-body py-3 fw-medium" style="font-size: 15px;">
-                        🎉 {{ session('success') }}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white m-auto me-2" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
-        @endif
+   
+@if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show" 
+         style="position: fixed; top: 20px; right: 20px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" 
+         role="alert">
+        <strong>🎉 Успешно!</strong> {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
+@endif
 
     <main class="main" style="padding-top:120px; background-color: #f8fafc; min-height: 100vh;">
     <div class="container">
 
-    {{-- ================================================================== --}}
-    {{-- ШАГ 3: ФОРМА БРОНИРОВАНИЯ С HERO-БЛОКОМ БИЗНЕСА (Выбран конкретный бизнес) --}}
-    {{-- ================================================================== --}}
+
     @if(isset($business) && $business)
 
         <div class="mb-4">
@@ -100,10 +93,11 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold text-dark small">Комментарий к записи</label>
-                            <textarea name="comment" class="form-control" rows="3" style="border-radius: 12px; background-color: #f8fafc;" placeholder="Например: пожелания к мастеру или детали заказа..."></textarea>
-                        </div>
+                        <label class="block text-gray-700">Количество гостей</label>
+        <input type="number" class="form-control" name="guests" min="1" required class="w-full border p-2 rounded">
+    </div>
+
+
 
                         <button class="btn text-white w-100 py-3 fw-bold shadow-sm custom-submit-btn" style="background-color: #5046e5; border-radius: 14px; font-size: 16px;">
                             Подтвердить запись
@@ -113,9 +107,7 @@
             </div>
         </div>
 
-    {{-- ================================================================== --}}
-    {{-- ШАГ 2: СПИСОК БИЗНЕСОВ ВНУТРИ ВЫБРАННОЙ КАТЕГОРИИ --}}
-    {{-- ================================================================== --}}
+    
     @elseif(isset($selectedType) && $selectedType)
 
         <div class="mb-4">
@@ -204,9 +196,6 @@
             @endforelse
         </div>
 
-    {{-- ================================================================== --}}
-    {{-- ШАГ 1: ГЛАВНЫЙ ЭКРАН (Отображается изначально, когда ничего не выбрано) --}}
-    {{-- ================================================================== --}}
     @else
 
         <h3 class="mb-4 fw-bold" style="color: #1e293b; letter-spacing: -0.75px; font-size: 28px;">Выберите категорию услуг</h3>
@@ -284,8 +273,6 @@
 
     </div>
     </main>
-
-    {{-- СТИЛИ ДЛЯ ПРЕМИАЛЬНОГО ДИЗАЙНА --}}
     <style>
         .category-real-card {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -339,7 +326,19 @@
             border-radius: 10px;
         }
     </style>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        
+        var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+        
+        var toastList = toastElList.map(function (toastEl) {
+            return new bootstrap.Toast(toastEl);
+        });
 
+       
+        toastList.forEach(toast => toast.show());
+    });
+</script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var toastEl = document.getElementById('bookingToast');
